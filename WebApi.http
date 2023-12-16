@@ -1,0 +1,28 @@
+﻿@WebApi_HostAddress = https://localhost:5001
+
+GET {{WebApi_HostAddress}}/users/1
+Authorization : eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjEiLCJuYmYiOjE3MDI3MzM3OTMsImV4cCI6MTcwMzMzODU5MywiaWF0IjoxNzAyNzMzNzkzfQ.lyP7yiaEZ9yVFSpqcqrIshxTRdVx4IBUCKURhyze0A0
+
+###
+
+POST {{WebApi_HostAddress}}/patients/users/1
+Content-Type: application/json
+Authorization : eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjEiLCJuYmYiOjE3MDI3MzM3OTMsImV4cCI6MTcwMzMzODU5MywiaWF0IjoxNzAyNzMzNzkzfQ.lyP7yiaEZ9yVFSpqcqrIshxTRdVx4IBUCKURhyze0A0
+
+
+      {
+        "name": "Patient Name",
+        "age": 25,
+        "gender": "Male",
+        "phoneNumber": "987654321",
+        "Temperature": 12 ,
+        "O2": 12,
+        "HeartRate": 12,
+        "Longitude": 12,
+        "Latitude" : 12
+
+    }
+
+
+###
+
