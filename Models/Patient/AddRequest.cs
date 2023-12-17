@@ -12,15 +12,17 @@ namespace WebApi.Models
         public string Gender { get; set; }
         [Required]
         public string PhoneNumber { get; set; }
+        public string Illness { get; set; }
         // i will make another model for them they can't be 
+    }
+    
+    public class BandData
+    {
         public double? Temperature { get; set; }
         public double? O2 { get; set; }
         public double? HeartRate { get; set; }
         public double? Longitude { get; set; }
         public double? Latitude { get; set; }
-
-
-
     }
 
     public class MedicineAddRequest

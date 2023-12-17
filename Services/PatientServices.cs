@@ -19,11 +19,12 @@ namespace WebApi.Services
         void DeletePatient(int userId, int patientId);
 
         // Medicine-related methods
-        List<Medicine> GetMedicinesByPatientId(int userId, int patientId);
-        Medicine GetMedicineById(int userId, int patientId, int medicineId);
+        List<MedicineResponse> GetMedicinesByPatientId(int userId, int patientId);
+        MedicineResponse GetMedicineById(int userId, int patientId, int medicineId);
         void AddMedicine(int userId, int patientId, MedicineAddRequest model);
         void UpdateMedicine(int userId, int patientId, int medicineId, MedicineUpdateRequest model);
         void DeleteMedicine(int userId, int patientId, int medicineId);
+        void UpdateBand(int userId, int patientId, BandData model);
     }
 
 
@@ -38,17 +39,9 @@ namespace WebApi.Services
             _mapper = mapper;
         }
 
-        // CRUD operations for Patient
-        public User GetUserWithPatients(int userId)
-        {
-            return  _context.Users
-                .Include(u => u.Patients)
-                .FirstOrDefault(u => u.Id == userId);
-        }
-
         public List<PatientResponse> GetPatientsByUserId(int userId)
         {
-            var user = GetUserWithPatients(userId);
+            var user = getUser(userId);
 
             // Map Patient entities to PatientResponse objects
             var patientResponses = _mapper.Map<List<PatientResponse>>(user.Patients);
@@ -93,6 +86,13 @@ namespace WebApi.Services
             patient.PhoneNumber = model.PhoneNumber ?? patient.PhoneNumber;
             patient.Illness = model.Illness ?? patient.Illness;
 
+            _context.SaveChanges();
+        } 
+
+        public void UpdateBand(int userId, int patientId, BandData model)
+        {
+            var user = getUser(userId);
+            var patient = getPatient(user, patientId);
             // New properties in the PatientUpdateRequest
             patient.Temperature = model.Temperature ?? patient.Temperature;
             patient.O2 = model.O2 ?? patient.O2;
@@ -110,22 +110,26 @@ namespace WebApi.Services
 
             user.Patients.Remove(patient);
             _context.SaveChanges();
+
         }
 
         //------------------------------------------------ ...CRUD operations for Medicine... ------------------------------------------------
 
-        public List<Medicine> GetMedicinesByPatientId(int userId, int patientId)
+        public List<MedicineResponse> GetMedicinesByPatientId(int userId, int patientId)
         {
             var user = getUser(userId);
             var patient = getPatient(user, patientId);
-            return patient.Medicines;
+            var medicineResponses = _mapper.Map<List<MedicineResponse>>(patient.Medicines);
+
+            return medicineResponses;
         }
 
-        public Medicine GetMedicineById(int userId, int patientId, int medicineId)
+        public MedicineResponse GetMedicineById(int userId, int patientId, int medicineId)
         {
             var user = getUser(userId);
             var patient = getPatient(user, patientId);
-            return getMedicine(patient, medicineId);
+            var medicineResponses = _mapper.Map<MedicineResponse>(getMedicine(patient, medicineId));
+            return medicineResponses;
         }
 
         public void AddMedicine(int userId, int patientId, MedicineAddRequest model)
@@ -137,13 +141,13 @@ namespace WebApi.Services
             {
                 var medicine = _mapper.Map<Medicine>(model);
                 patient.Medicines.Add(medicine);
-                _context.SaveChanges();
             }
             else
             {
                 // Handle the case where patient is null
                 throw new ArgumentNullException(nameof(patient));
             }
+                _context.SaveChanges();
         }
         
 
@@ -153,9 +157,18 @@ namespace WebApi.Services
             var patient = getPatient(user, patientId);
             var medicine = getMedicine(patient, medicineId);
 
-            // Use AutoMapper to map the properties from the DTO to the entity
-            _mapper.Map(model, medicine);
+            //// Use AutoMapper to map the properties from the DTO to the entity
+            //_mapper.Map(model, medicine);
+            if (medicine == null)
+            {
+                throw new ArgumentNullException(nameof(patient));
 
+            }
+            medicine.MedicineName = model.MedicineName ?? medicine.MedicineName;
+            medicine.Date = model.Date ?? medicine.Date;
+            medicine.Time = model.Time ?? medicine.Time;
+            medicine.Repeat = model.Repeat ?? medicine.Repeat;
+            medicine.Reminder = model.Reminder ?? medicine.Reminder; 
             _context.SaveChanges();
         }
 
@@ -184,7 +197,7 @@ namespace WebApi.Services
         private User getUser(int userId)
         {
             var user = _context.Users
-                .Include(u => u.Patients) // Make sure Patients are loaded
+                .Include(u => u.Patients).ThenInclude(p => p.Medicines) // Make sure Patients are loaded
                 .FirstOrDefault(u => u.Id == userId);
 
             if (user == null) throw new KeyNotFoundException("User not found");
@@ -193,10 +206,19 @@ namespace WebApi.Services
 
         private Patient getPatient(User user, int patientId)
         {
-            var patient = user.Patients.FirstOrDefault(p => p.PatientId == patientId);
+            //var patient = user.Patients.FirstOrDefault(p => p.PatientId == patientId);
+
+            var patient = _context.Users
+                .Where(u => u.Id == user.Id)  // Ensure we are working with the correct user
+                .SelectMany(u => u.Patients)  // Flatten the Patients list
+                .Include(p => p.Medicines)    // Eager load the Medicines property
+                .FirstOrDefault(p => p.PatientId == patientId);
+
             if (patient == null) throw new KeyNotFoundException("Patient not found");
             return patient;
         }
+
+
 //-------------------------------------------------------------------------------------
 
 

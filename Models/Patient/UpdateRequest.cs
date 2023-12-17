@@ -14,14 +14,6 @@ namespace WebApi.Models
         public string PhoneNumber { get; set; }
         public string Illness { get; set; }
 
-        public double? Temperature { get; set; }
-        public double? O2 { get; set; }
-        public double? HeartRate { get; set; }
-        public double? Longitude { get; set; }
-        public double? Latitude { get; set; }
-        // Update models for related entities
-        public List<MedicineUpdateRequest> Medicines { get; set; }
-      
     }
 
         public class MedicineUpdateRequest

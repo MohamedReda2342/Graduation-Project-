@@ -11,12 +11,24 @@ using WebApi.Services;
 [Route("[controller]")]
 public class PatientsController : ControllerBase
 {
+
     private IPatientService _patientService;
     private IMapper _mapper;
 
     public PatientsController(IPatientService patientService,IMapper mapper)
     {
+        _patientService = patientService;
         _mapper = mapper;
+    }
+
+
+    //http://localhost:4000/patients/users/[userID]
+    // Done
+    [HttpPost("users/{userId}")]
+    public IActionResult AddPatient(int userId, PatientAddRequest model)
+    {
+        _patientService.AddPatient(userId, model);
+        return Ok(new { message = "Patient added successfully" });
     }
 
     //http://localhost:4000/patients/users/1
@@ -28,6 +40,8 @@ public class PatientsController : ControllerBase
         return Ok(patients);
     }
 
+//----------------------------------------
+
 
     //http://localhost:4000/patients/[patientID]/users/[userid]/
     // Done
@@ -36,15 +50,6 @@ public class PatientsController : ControllerBase
     {
         var patient = _patientService.GetPatientById(userId, patientId);
         return Ok(patient);
-    }
-
-    //http://localhost:4000/patients/users/[userID]
-    // Done
-    [HttpPost("users/{userId}")]
-    public IActionResult AddPatient(int userId, PatientAddRequest model)
-    {
-        _patientService.AddPatient(userId, model);
-        return Ok(new { message = "Patient added successfully" });
     }
 
 
@@ -58,6 +63,15 @@ public class PatientsController : ControllerBase
     }
 
 
+    //http://localhost:4000/patients/[patientID]/users/[userid]/
+    // Done
+    [HttpPut("{patientId}/users/{userId}/band")]
+    public IActionResult UpdateBand(int userId, int patientId, BandData model)
+    {
+        _patientService.UpdateBand(userId, patientId, model);
+        return Ok(new { message = "Band Data updated successfully" });
+    }
+
     //http://localhost:4000/patients/[userid]/[patientID]
     // i suggest using Soft Delete in the next update 
     [HttpDelete("{patientId}/users/{userId}")]
@@ -70,14 +84,14 @@ public class PatientsController : ControllerBase
 
     //------------------------------------------------ ...CRUD operations for Medicine... ------------------------------------------------
 
-    [HttpGet("{userId}/patients/{patientId}/medicines")]
+    [HttpGet("{patientId}/users/{userId}/medicines")]
     public IActionResult GetMedicines(int userId, int patientId)
     {
         var medicines = _patientService.GetMedicinesByPatientId(userId, patientId);
         return Ok(medicines);
     }
 
-    [HttpPost("{userId}/patients/{patientId}/medicines")]
+    [HttpPost("{patientId}/users/{userId}/medicines")]
     public IActionResult AddMedicine(int userId, int patientId, MedicineAddRequest model)
     {
         _patientService.AddMedicine(userId, patientId, model);
@@ -85,14 +99,14 @@ public class PatientsController : ControllerBase
     }
 
 
-    [HttpGet("{userId}/patients/{patientId}/medicines/{medicineId}")]
+    [HttpGet("{patientId}/users/{userId}/medicines/{medicineId}")]
     public IActionResult GetMedicineById(int userId, int patientId, int medicineId)
     {
         var medicine = _patientService.GetMedicineById(userId, patientId, medicineId);
         return Ok(medicine);
     }
 
-    [HttpPut("{userId}/patients/{patientId}/medicines/{medicineId}")]
+    [HttpPut("{patientId}/users/{userId}/medicines/{medicineId}")]
     public IActionResult UpdateMedicine(int userId, int patientId, int medicineId, [FromBody] MedicineUpdateRequest model)
     {
         _patientService.UpdateMedicine(userId, patientId, medicineId, model);
@@ -101,7 +115,7 @@ public class PatientsController : ControllerBase
 
 
 
-    [HttpDelete("{userId}/patients/{patientId}/medicines/{medicineId}")]
+    [HttpDelete("{patientId}/users/{userId}/medicines/{medicineId}")]
     public IActionResult DeleteMedicine(int userId, int patientId, int medicineId)
     {
         _patientService.DeleteMedicine(userId, patientId, medicineId);

@@ -5,6 +5,7 @@ using BCrypt.Net;
 using WebApi.Authorization;
 using WebApi.Entities;
 using WebApi.Helpers;
+using WebApi.Models;
 using WebApi.Models.Users;
 
 public interface IUserService
@@ -54,6 +55,8 @@ public class UserService : IUserService
 
     public User GetById(int id)
     {
+        //var UserResponses = _mapper.Map<GetUserResponse>(getUser(id));
+
         return getUser(id);
     }
 
@@ -105,6 +108,7 @@ public class UserService : IUserService
     {
         var user = _context.Users.Find(id);
         if (user == null) throw new KeyNotFoundException("User not found");
+
         return user;
     }
 

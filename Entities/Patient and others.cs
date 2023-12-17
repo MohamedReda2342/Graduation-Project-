@@ -18,12 +18,14 @@ namespace WebApi.Entities
         public double? Longitude { get; set; }
         public double? Latitude { get; set; }
 
+
         public User User { get; set; }
         public List<Medicine> Medicines { get; set; }
+
     }
 
     public class Medicine
-    {
+    {   
         public int MedicineId { get; set; }
         public string MedicineName { get; set; }
         public string Date { get; set; }

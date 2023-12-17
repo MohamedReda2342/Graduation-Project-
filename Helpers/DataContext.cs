@@ -33,6 +33,11 @@ public class DataContext : DbContext
             .HasIndex(p => new { p.UserId, p.PhoneNumber })
             .IsUnique();
 
+        modelBuilder.Entity<Patient>()
+            .HasMany(patient => patient.Medicines)
+            .WithOne(medicine => medicine.Patient)
+            .HasForeignKey(medicine => medicine.PatientId);
+
 
     }
 
