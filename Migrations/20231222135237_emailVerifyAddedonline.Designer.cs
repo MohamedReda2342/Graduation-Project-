@@ -3,6 +3,7 @@ using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using WebApi.Helpers;
 
@@ -11,9 +12,10 @@ using WebApi.Helpers;
 namespace WebApi.Migrations
 {
     [DbContext(typeof(DataContext))]
-    partial class DataContextModelSnapshot : ModelSnapshot
+    [Migration("20231222135237_emailVerifyAddedonline")]
+    partial class emailVerifyAddedonline
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -36,17 +38,14 @@ namespace WebApi.Migrations
                     b.Property<string>("MedicineName")
                         .HasColumnType("nvarchar(max)");
 
-                    b.Property<int?>("NumOfDays")
-                        .HasColumnType("int");
-
                     b.Property<int>("PatientId")
                         .HasColumnType("int");
 
                     b.Property<string>("Reminder")
                         .HasColumnType("nvarchar(max)");
 
-                    b.Property<string>("Repeat")
-                        .HasColumnType("nvarchar(max)");
+                    b.Property<int?>("Repeat")
+                        .HasColumnType("int");
 
                     b.Property<string>("Time")
                         .HasColumnType("nvarchar(max)");

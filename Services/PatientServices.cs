@@ -169,6 +169,7 @@ namespace WebApi.Services
             medicine.Date = model.Date ?? medicine.Date;
             medicine.Time = model.Time ?? medicine.Time;
             medicine.Repeat = model.Repeat ?? medicine.Repeat;
+            medicine.NumOfDays = model.NumOfDays ?? medicine.NumOfDays;
             medicine.Reminder = model.Reminder ?? medicine.Reminder; 
             _context.SaveChanges();
         }

@@ -4,7 +4,7 @@
 
     public class PatientResponse
     {
-        public int PatientId { get; set; }
+            public int PatientId { get; set; }
         public string Name { get; set; }
         public int? Age { get; set; }
         public string Gender { get; set; }
@@ -24,10 +24,12 @@
         public string MedicineName { get; set; }
         public string Date { get; set; }
         public string Time { get; set; }
-        public int Repeat { get; set; }
+        public string Repeat { get; set; }
         public string Reminder { get; set; }
+        public int? NumOfDays { get; set; }
+
     }
 
 
-    
+
 }

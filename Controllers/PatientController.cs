@@ -22,19 +22,17 @@ public class PatientsController : ControllerBase
     }
 
 
-    //http://localhost:4000/patients/users/[userID]
     // Done
-    [HttpPost("users/{userId}")]
-    public IActionResult AddPatient(int userId, PatientAddRequest model)
+    [HttpPost("AddPatient")]
+    public IActionResult AddPatient([FromForm] int userId,[FromForm] PatientAddRequest model)
     {
         _patientService.AddPatient(userId, model);
         return Ok(new { message = "Patient added successfully" });
     }
-
-    //http://localhost:4000/patients/users/1
+        
     // Done
-    [HttpGet("users/{userId}")]
-    public IActionResult GetPatientsByUserId(int userId)
+    [HttpGet("get-all-patients-of-user")]
+    public IActionResult GetPatientsByUserId([FromForm] int userId)
     {
         var patients = _patientService.GetPatientsByUserId(userId);
         return Ok(patients);
@@ -43,39 +41,33 @@ public class PatientsController : ControllerBase
 //----------------------------------------
 
 
-    //http://localhost:4000/patients/[patientID]/users/[userid]/
-    // Done
-    [HttpGet("{patientId}/users/{userId}/")]
-    public IActionResult GetPatientById(int userId, int patientId)
+    [HttpGet("Get-Specific-Patient")]
+    public IActionResult GetPatientById([FromForm] int userId, [FromForm] int patientId)
     {
         var patient = _patientService.GetPatientById(userId, patientId);
         return Ok(patient);
     }
 
 
-    //http://localhost:4000/patients/[patientID]/users/[userid]/
-    // Done
-    [HttpPut("{patientId}/users/{userId}")]
-    public IActionResult UpdatePatient(int userId, int patientId, PatientUpdateRequest model)
+    [HttpPut("UpdatePatient")]
+    public IActionResult UpdatePatient([FromForm] int userId, [FromForm] int patientId, [FromForm] PatientUpdateRequest model)
     {
         _patientService.UpdatePatient(userId, patientId, model);
         return Ok(new { message = "Patient updated successfully" });
     }
 
 
-    //http://localhost:4000/patients/[patientID]/users/[userid]/
-    // Done
-    [HttpPut("{patientId}/users/{userId}/band")]
-    public IActionResult UpdateBand(int userId, int patientId, BandData model)
+
+    [HttpPut("UpdateBand")]
+    public IActionResult UpdateBand([FromForm] int userId, [FromForm] int patientId, [FromForm] BandData model)
     {
         _patientService.UpdateBand(userId, patientId, model);
         return Ok(new { message = "Band Data updated successfully" });
     }
 
-    //http://localhost:4000/patients/[userid]/[patientID]
-    // i suggest using Soft Delete in the next update 
-    [HttpDelete("{patientId}/users/{userId}")]
-    public IActionResult DeletePatient(int userId, int patientId)
+
+    [HttpDelete("DeletePatient")]
+    public IActionResult DeletePatient([FromForm] int userId, [FromForm] int patientId)
     {
         _patientService.DeletePatient(userId, patientId);
         return Ok(new { message = "Patient deleted successfully" });
@@ -84,30 +76,30 @@ public class PatientsController : ControllerBase
 
     //------------------------------------------------ ...CRUD operations for Medicine... ------------------------------------------------
 
-    [HttpGet("{patientId}/users/{userId}/medicines")]
-    public IActionResult GetMedicines(int userId, int patientId)
+    [HttpGet("GetAllMedicines")]
+    public IActionResult GetMedicines([FromForm] int userId, [FromForm] int patientId)
     {
         var medicines = _patientService.GetMedicinesByPatientId(userId, patientId);
         return Ok(medicines);
     }
 
-    [HttpPost("{patientId}/users/{userId}/medicines")]
-    public IActionResult AddMedicine(int userId, int patientId, MedicineAddRequest model)
+    [HttpPost("AddMedicine")]
+    public IActionResult AddMedicine([FromForm] int userId, [FromForm] int patientId, [FromForm] MedicineAddRequest model)
     {
         _patientService.AddMedicine(userId, patientId, model);
         return Ok(new { Message = "Medicine added successfully." });
     }
 
 
-    [HttpGet("{patientId}/users/{userId}/medicines/{medicineId}")]
-    public IActionResult GetMedicineById(int userId, int patientId, int medicineId)
+    [HttpGet("GetSpecificMedicine")]
+    public IActionResult GetMedicineById([FromForm] int userId, [FromForm] int patientId, [FromForm] int medicineId)
     {
         var medicine = _patientService.GetMedicineById(userId, patientId, medicineId);
         return Ok(medicine);
     }
 
-    [HttpPut("{patientId}/users/{userId}/medicines/{medicineId}")]
-    public IActionResult UpdateMedicine(int userId, int patientId, int medicineId, [FromBody] MedicineUpdateRequest model)
+    [HttpPut("UpdateMedicine")]
+    public IActionResult UpdateMedicine([FromForm] int userId, [FromForm] int patientId, [FromForm] int medicineId, [FromForm] MedicineUpdateRequest model)
     {
         _patientService.UpdateMedicine(userId, patientId, medicineId, model);
         return Ok(new { Message = "Medicine updated successfully." });
@@ -115,8 +107,8 @@ public class PatientsController : ControllerBase
 
 
 
-    [HttpDelete("{patientId}/users/{userId}/medicines/{medicineId}")]
-    public IActionResult DeleteMedicine(int userId, int patientId, int medicineId)
+    [HttpDelete("DeleteMedicine")]
+    public IActionResult DeleteMedicine([FromForm] int userId, [FromForm] int patientId, [FromForm] int medicineId)
     {
         _patientService.DeleteMedicine(userId, patientId, medicineId);
         return Ok(new { Message = "Medicine deleted successfully." });

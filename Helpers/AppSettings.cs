@@ -17,7 +17,8 @@ public class EmailSettings
     public string SmtpPassword { get; set; } = "dxxr esaz tjbm xvzq"; // Provide default value
     public string FromEmail { get; set; } = "reda23425@gmail.com"; // Provide default value
     public string FromName { get; set; } = "Elder People Band"; // Provide default value
-    public string AppUrl { get; set; } = "testgd.azurewebsites.net"; // Provide default value
+    //public string AppUrl { get; set; } = "testgd.azurewebsites.net"; // Provide default value
+    public string AppUrl { get; set; } = "elderpeopleband.azurewebsites.net"; // Provide default value
 }
 //public class EmailSettings
 //{

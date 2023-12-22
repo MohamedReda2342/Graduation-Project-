@@ -54,6 +54,8 @@ public class UserService : IUserService
         // validate
         if (user == null || !BCrypt.Verify(model.Password, user.PasswordHash))
             throw new AppException("Email or password is incorrect");
+        if (user.IsEmailVerified==false)
+            throw new AppException("Email isn't verified");
 
         // authentication successful
         var response = _mapper.Map<AuthenticateResponse>(user);
@@ -63,14 +65,17 @@ public class UserService : IUserService
 
     public IEnumerable<User> GetAll()
     {
-        return _context.Users;
+        var users = _context.Users;
+        var userResponses = _mapper.Map<IEnumerable<User>>(users);
+        return userResponses;
     }
+
 
     public User GetById(int id)
     {
-        //var UserResponses = _mapper.Map<GetUserResponse>(getUser(id));
+        var UserResponses = _mapper.Map<User>(getUser(id));
 
-        return getUser(id);
+        return UserResponses;
     }
 
     public void Register(RegisterRequest model)
@@ -86,7 +91,7 @@ public class UserService : IUserService
         user.PasswordHash = BCrypt.HashPassword(model.Password);
 
         user.VerificationToken = Guid.NewGuid().ToString();
-        user.VerificationTokenExpiry = DateTime.UtcNow.AddHours(1); // Set token expiry time
+        user.VerificationTokenExpiry = DateTime.UtcNow.AddHours(1000); // Set token expiry time
 
         // save user
         _context.Users.Add(user);
@@ -95,7 +100,7 @@ public class UserService : IUserService
         // Send verification email
         SendVerificationEmail(user.Email, user.VerificationToken, _appSettings);
     }
-
+    
 
     public void Update(int id, UpdateRequest model)
     {
@@ -105,9 +110,23 @@ public class UserService : IUserService
         if (model.Email != user.Email && _context.Users.Any(x => x.Email == model.Email))
             throw new AppException("Email '" + model.Email + "' is already taken");
 
-        // hash password if it was entered
-        if (!string.IsNullOrEmpty(model.Password))
-            user.PasswordHash = BCrypt.HashPassword(model.Password);
+        if (model.Email != user.Email){
+            // Update the user's email
+            user.Email = model.Email;
+
+            // Set a new verification token and send a verification email
+            user.VerificationToken = Guid.NewGuid().ToString();
+            // Set token expiry time
+            user.VerificationTokenExpiry = DateTime.UtcNow.AddHours(1000); 
+
+            SendVerificationEmail(user.Email, user.VerificationToken, _appSettings);
+            // copy model to user and save
+            _mapper.Map(model, user);
+            _context.Users.Update(user);
+            _context.SaveChanges();
+            throw new AppException("User updated successfully , Check your mail for verification");
+
+        }
 
         // copy model to user and save
         _mapper.Map(model, user);

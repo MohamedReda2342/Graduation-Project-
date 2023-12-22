@@ -6,6 +6,8 @@ using Pomelo.EntityFrameworkCore.MySql.Infrastructure;
 using System.Text.Json;
 using System.Text.Json.Serialization;
 using Microsoft.AspNetCore.Mvc.Formatters;
+using Microsoft.AspNetCore.Authentication.Cookies;
+using Microsoft.AspNetCore.Authentication.Google;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -22,7 +24,11 @@ var builder = WebApplication.CreateBuilder(args);
 
 
     services.AddCors();
-    services.AddControllers();
+
+
+
+
+
 
     // configure automapper with all automapper profiles from this assembly
     services.AddAutoMapper(typeof(Program));

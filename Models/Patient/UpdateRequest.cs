@@ -21,12 +21,14 @@ namespace WebApi.Models
             public string MedicineName { get; set; }
             public string Date { get; set; }
             public string Time { get; set; }
-            public int? Repeat { get; set; }
+            public string Repeat { get; set; }
             public string Reminder { get; set; }
-        }
+            public int? NumOfDays { get; set; }
+
+    }
 
 
-    
+
 
 
 

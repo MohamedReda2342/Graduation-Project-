@@ -24,57 +24,64 @@ public class UsersController : ControllerBase
         _appSettings = appSettings.Value;
     }
 
-    [AllowAnonymous]
-    [HttpPost("authenticate")]
-    public IActionResult Authenticate(AuthenticateRequest model)
-    {
-        var response = _userService.Authenticate(model);
-        return Ok(response);
-    }
 
 
     [AllowAnonymous]
     [HttpPost("register")]
-    public IActionResult Register(RegisterRequest model)
+    public IActionResult Register([FromForm] RegisterRequest model)
     {
         _userService.Register(model);
         return Ok(new { message = "Check your mail for verification" });
     }
 
 
-    [HttpGet]
+
+    [AllowAnonymous]
+    [HttpPost("authenticate")]
+    public IActionResult Authenticate([FromForm] AuthenticateRequest model)
+    {
+        var response = _userService.Authenticate(model);
+        return Ok(response);
+    }
+
+
+
+
+    [HttpGet("Get-all")]
     public IActionResult GetAll()
     {
         var users = _userService.GetAll();
         return Ok(users);
     }
 
-    [HttpGet("{id}")]
-    public IActionResult GetById(int id)
+    [HttpGet("get-by-id")]
+    public IActionResult GetById([FromForm] int id)
     {
         var user = _userService.GetById(id);
         return Ok(user);
     }
 
-    [HttpPut("{id}")]
-    public IActionResult Update(int id, UpdateRequest model)
+    [HttpPut("edit")]
+    public IActionResult Update([FromForm] int id, [FromForm] UpdateRequest model)
     {
         _userService.Update(id, model);
         return Ok(new { message = "User updated successfully" });
     }
 
-    [HttpDelete("{id}")]
-    public IActionResult Delete(int id)
+    [HttpPut("delete")]
+    public IActionResult Delete([FromForm] int id)
     {
         _userService.Delete(id);
         return Ok(new { message = "User deleted successfully" });
     }
 
+
+
     //----------------------------------------------------------------------------------------
 
     [AllowAnonymous]
     [HttpPost("forgot-password")]
-    public IActionResult ForgotPassword([FromBody] ForgotPasswordRequest model)
+    public IActionResult ForgotPassword([FromForm] ForgotPasswordRequest model)
     {
         try
         {
@@ -90,7 +97,7 @@ public class UsersController : ControllerBase
 
     [AllowAnonymous]
     [HttpPost("reset-password")]
-    public IActionResult ResetPassword([FromBody] ResetPasswordRequest model)
+    public IActionResult ResetPassword([FromForm] ResetPasswordRequest model)
     {
         try
         {
@@ -116,7 +123,6 @@ public class UsersController : ControllerBase
         }
         catch (AppException ex)
         {
-
             return BadRequest(new { message = ex.Message });
         }
                                                            

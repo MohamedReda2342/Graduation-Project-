@@ -13,7 +13,6 @@ namespace WebApi.Helpers
             //---------------------------------------------- User ----------------------------------------------
 
             //CreateMap<User, GetUserResponse>();
-            //CreateMap<GetUserResponse, GetUserResponse>();
 
             // User -> AuthenticateResponse
             CreateMap<User, AuthenticateResponse>();
