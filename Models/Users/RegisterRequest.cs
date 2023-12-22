@@ -1,5 +1,6 @@
 namespace WebApi.Models.Users;
 
+using System;
 using System.ComponentModel.DataAnnotations;
 
 public class RegisterRequest
@@ -15,4 +16,9 @@ public class RegisterRequest
 
     [Required]
     public string Password { get; set; }
+
+    // Additional properties for email verification (not recommended)
+    public string VerificationToken { get; set; }
+
+    public DateTime? VerificationTokenExpiry { get; set; }
 }

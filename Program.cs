@@ -37,9 +37,13 @@ var builder = WebApplication.CreateBuilder(args);
     services.AddScoped<IPatientService, PatientServices>();
 
 
+    services.Configure<EmailSettings>(builder.Configuration.GetSection("EmailSettings"));
+    services.Configure<AppSettings>(builder.Configuration.GetSection("AppSettings"));
+
+
     // this code i got from this :
     //https://stackoverflow.com/questions/59199593/net-core-3-0-possible-object-cycle-was-detected-which-is-not-supported
-        builder.Services.AddControllers().AddJsonOptions(options =>
+    builder.Services.AddControllers().AddJsonOptions(options =>
         {
             options.JsonSerializerOptions.ReferenceHandler = ReferenceHandler.IgnoreCycles;
             options.JsonSerializerOptions.WriteIndented = true;

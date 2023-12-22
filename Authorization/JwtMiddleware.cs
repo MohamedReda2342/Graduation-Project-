@@ -1,4 +1,4 @@
-namespace WebApi.Authorization;
+    namespace WebApi.Authorization;
 
 using WebApi.Services;
 

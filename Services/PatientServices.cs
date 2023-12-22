@@ -120,7 +120,8 @@ namespace WebApi.Services
             var user = getUser(userId);
             var patient = getPatient(user, patientId);
             var medicineResponses = _mapper.Map<List<MedicineResponse>>(patient.Medicines);
-
+            if (!patient.Medicines.Any() )
+                throw new KeyNotFoundException("Medicines not found");
             return medicineResponses;
         }
 

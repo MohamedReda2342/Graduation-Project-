@@ -17,10 +17,7 @@ public class UsersController : ControllerBase
     private IMapper _mapper;
     private readonly AppSettings _appSettings;
 
-    public UsersController(
-        IUserService userService,
-        IMapper mapper,
-        IOptions<AppSettings> appSettings)
+    public UsersController( IUserService userService, IMapper mapper, IOptions<AppSettings> appSettings)
     {
         _userService = userService;
         _mapper = mapper;
@@ -35,13 +32,15 @@ public class UsersController : ControllerBase
         return Ok(response);
     }
 
+
     [AllowAnonymous]
     [HttpPost("register")]
     public IActionResult Register(RegisterRequest model)
     {
         _userService.Register(model);
-        return Ok(new { message = "Registration successful" });
+        return Ok(new { message = "Check your mail for verification" });
     }
+
 
     [HttpGet]
     public IActionResult GetAll()
@@ -70,4 +69,61 @@ public class UsersController : ControllerBase
         _userService.Delete(id);
         return Ok(new { message = "User deleted successfully" });
     }
+
+    //----------------------------------------------------------------------------------------
+
+    [AllowAnonymous]
+    [HttpPost("forgot-password")]
+    public IActionResult ForgotPassword([FromBody] ForgotPasswordRequest model)
+    {
+        try
+        {
+            _userService.ForgotPassword(model.Email);
+            return Ok(new { message = "OTP sent successfully" });
+        }
+        catch (AppException ex)
+        {
+            return BadRequest(new { message = ex.Message });
+        }
+    }
+
+
+    [AllowAnonymous]
+    [HttpPost("reset-password")]
+    public IActionResult ResetPassword([FromBody] ResetPasswordRequest model)
+    {
+        try
+        {
+            _userService.VerifyAndResetPassword(model.Email, model.Otp, model.NewPassword);
+            return Ok(new { message = "Password reset successfully" });
+        }
+        catch (AppException ex)
+        {
+            return BadRequest(new { message = ex.Message });
+        }
+    }
+
+
+
+    [AllowAnonymous]
+    [HttpGet("verify-email")]
+    public IActionResult VerifyEmail([FromQuery] VerifyEmailRequest model)
+    {
+        try
+        {
+            _userService.VerifyEmail(model.Token);
+            return Ok(new { message = "Email verified successfully" });
+        }
+        catch (AppException ex)
+        {
+
+            return BadRequest(new { message = ex.Message });
+        }
+                                                           
+    }
+
+    
+
+
+
 }
