@@ -76,18 +76,18 @@ public class PatientsController : ControllerBase
 
     //------------------------------------------------ ...CRUD operations for Medicine... ------------------------------------------------
 
-    [HttpGet("GetAllMedicines")]
-    public IActionResult GetMedicines([FromForm] int userId, [FromForm] int patientId)
-    {
-        var medicines = _patientService.GetMedicinesByPatientId(userId, patientId);
-        return Ok(medicines);
-    }
-
     [HttpPost("AddMedicine")]
     public IActionResult AddMedicine([FromForm] int userId, [FromForm] int patientId, [FromForm] MedicineAddRequest model)
     {
         _patientService.AddMedicine(userId, patientId, model);
         return Ok(new { Message = "Medicine added successfully." });
+    }
+
+    [HttpGet("GetAllMedicines")]
+    public IActionResult GetMedicines([FromForm] int userId, [FromForm] int patientId)
+    {
+        var medicines = _patientService.GetMedicinesByPatientId(userId, patientId);
+        return Ok(medicines);
     }
 
 
