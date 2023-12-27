@@ -32,7 +32,7 @@ public class PatientsController : ControllerBase
         
     // Done
     [HttpGet("get-all-patients-of-user")]
-    public IActionResult GetPatientsByUserId([FromForm] int userId)
+    public IActionResult GetPatientsByUserId([FromQuery] int userId)
     {
         var patients = _patientService.GetPatientsByUserId(userId);
         return Ok(patients);
@@ -42,7 +42,7 @@ public class PatientsController : ControllerBase
 
 
     [HttpGet("Get-Specific-Patient")]
-    public IActionResult GetPatientById([FromForm] int userId, [FromForm] int patientId)
+    public IActionResult GetPatientById([FromQuery] int userId, [FromQuery] int patientId)
     {
         var patient = _patientService.GetPatientById(userId, patientId);
         return Ok(patient);
@@ -84,7 +84,7 @@ public class PatientsController : ControllerBase
     }
 
     [HttpGet("GetAllMedicines")]
-    public IActionResult GetMedicines([FromForm] int userId, [FromForm] int patientId)
+    public IActionResult GetMedicines([FromQuery] int userId, [FromQuery] int patientId)
     {
         var medicines = _patientService.GetMedicinesByPatientId(userId, patientId);
         return Ok(medicines);
@@ -92,7 +92,7 @@ public class PatientsController : ControllerBase
 
 
     [HttpGet("GetSpecificMedicine")]
-    public IActionResult GetMedicineById([FromForm] int userId, [FromForm] int patientId, [FromForm] int medicineId)
+    public IActionResult GetMedicineById([FromQuery] int userId, [FromQuery] int patientId, [FromQuery] int medicineId)
     {
         var medicine = _patientService.GetMedicineById(userId, patientId, medicineId);
         return Ok(medicine);

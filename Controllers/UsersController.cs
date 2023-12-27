@@ -55,7 +55,7 @@ public class UsersController : ControllerBase
     }
 
     [HttpGet("get-by-id")]
-    public IActionResult GetById([FromForm] int id)
+    public IActionResult GetById([FromQuery] int id)
     {
         var user = _userService.GetById(id);
         return Ok(user);

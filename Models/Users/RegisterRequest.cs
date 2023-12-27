@@ -21,4 +21,9 @@ public class RegisterRequest
     public string VerificationToken { get; set; }
 
     public DateTime? VerificationTokenExpiry { get; set; }
+
+
+
+
+
 }
