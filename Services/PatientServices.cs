@@ -1,5 +1,6 @@
 ﻿using AutoMapper;
 using Microsoft.EntityFrameworkCore;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using WebApi.Entities;
@@ -65,12 +66,23 @@ namespace WebApi.Services
             var user = getUser(userId);
             //Check if the patient with the same details already exists
             if (user.Patients.Any(p => p.PhoneNumber == model.PhoneNumber))
-            {
-                // Patient with the same details already exists
                 throw new ApplicationException("Patient with the same details already exists.");
-            }
+            
             var patient = _mapper.Map<Patient>(model);
             user.Patients.Add(patient);
+
+
+
+            if (model.Photo != null)
+            {
+                var filePath = Path.Combine("Assets", model.Photo.FileName);
+                using (var fileStream = new FileStream(filePath, FileMode.Create))
+                {
+                    model.Photo.CopyTo(fileStream);
+                }
+                // Set the relative path to the database
+                patient.Photo = filePath;
+            }
             _context.SaveChanges();
         }
 
@@ -78,6 +90,27 @@ namespace WebApi.Services
         {
             var user = getUser(userId);
             var patient = getPatient(user, patientId);
+
+            if (model.Photo != null)
+            {
+                // Delete old photo from server 
+                if (!string.IsNullOrEmpty(patient.Photo))
+                {
+                    if (File.Exists(patient.Photo))
+                    {
+                        File.Delete(patient.Photo);
+                    }
+                }
+                //Save New Photo and save its name in the database
+                var filePath = Path.Combine("Assets", model.Photo.FileName);
+                using (var fileStream = new FileStream(filePath, FileMode.Create))
+                {
+                    model.Photo.CopyTo(fileStream);
+                }
+                // Set the relative path to the database
+                patient.Photo = filePath;
+
+            }
 
             // Update patient properties if provided, otherwise keep the existing values
             patient.Name = model.Name ?? patient.Name;
@@ -89,6 +122,8 @@ namespace WebApi.Services
             _context.SaveChanges();
         } 
 
+
+
         public void UpdateBand(int userId, int patientId, BandData model)
         {
             var user = getUser(userId);
@@ -99,6 +134,9 @@ namespace WebApi.Services
             patient.HeartRate = model.HeartRate ?? patient.HeartRate;
             patient.Longitude = model.Longitude ?? patient.Longitude;
             patient.Latitude = model.Latitude ?? patient.Latitude;
+            patient.SafeZoneLatitude = model.SafeZoneLatitude ?? patient.SafeZoneLatitude;
+            patient.SafeZoneLongitude = model.SafeZoneLongitude ?? patient.SafeZoneLongitude;
+            patient.Radius = model.Radius ?? patient.Radius;
 
             _context.SaveChanges();
         }
@@ -112,6 +150,7 @@ namespace WebApi.Services
             _context.SaveChanges();
 
         }
+
 
         //------------------------------------------------ ...CRUD operations for Medicine... ------------------------------------------------
 
@@ -166,11 +205,30 @@ namespace WebApi.Services
 
             }
             medicine.MedicineName = model.MedicineName ?? medicine.MedicineName;
-            medicine.Date = model.Date ?? medicine.Date;
-            medicine.Time = model.Time ?? medicine.Time;
+
+            medicine.StartDate = model.StartDate ?? medicine.StartDate;
+            medicine.EndDate = model.EndDate ?? medicine.EndDate;
+
+            medicine.Time1 = model.Time1 ?? medicine.Time1;
+            medicine.Time2 = model.Time1 ?? medicine.Time1;
+            medicine.Time3 = model.Time1 ?? medicine.Time1;
+            medicine.Time4 = model.Time1 ?? medicine.Time1;
+
+            medicine.Saturday = model.Saturday ?? medicine.Saturday;
+            medicine.Sunday = model.Saturday ?? medicine.Sunday;
+            medicine.Monday = model.Monday ?? medicine.Monday;
+            medicine.Tuesday = model.Tuesday ?? medicine.Tuesday;
+            medicine.Wednesday = model.Wednesday ?? medicine.Wednesday;
+            medicine.Thursday = model.Thursday ?? medicine.Thursday;
+            medicine.Friday = model.Friday ?? medicine.Friday;
+
+
             medicine.Repeat = model.Repeat ?? medicine.Repeat;
-            medicine.NumOfDays = model.NumOfDays ?? medicine.NumOfDays;
-            medicine.Reminder = model.Reminder ?? medicine.Reminder; 
+            medicine.Reminder = model.Reminder ?? medicine.Reminder;
+
+            //// Use AutoMapper to map the properties from the DTO to the entity
+            //_mapper.Map(model, patient);
+            _context.Patients.Update(patient);
             _context.SaveChanges();
         }
 

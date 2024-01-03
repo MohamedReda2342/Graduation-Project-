@@ -80,14 +80,19 @@ using (var scope = app.Services.CreateScope())
     app.UseMiddleware<JwtMiddleware>();
 
     app.MapControllers();
+
+    app.UseStaticFiles();
+
     app.UseRouting();
 
-    app.UseAuthorization(); // Ensure this is placed here
+    app.UseAuthorization(); 
 
     app.UseEndpoints(endpoints =>
     {
         endpoints.MapControllers();
     });
+
+
 }
 
 app.Run();

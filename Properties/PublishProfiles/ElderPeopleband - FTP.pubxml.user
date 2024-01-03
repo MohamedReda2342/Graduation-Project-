@@ -8,7 +8,7 @@ by editing this MSBuild file. In order to learn more about this please visit htt
     <TimeStampOfAssociatedLegacyPublishXmlFile />
     <EncryptedPassword>AQAAANCMnd8BFdERjHoAwE/Cl+sBAAAA8cN/ivxITkW7/H9OMpUuswAAAAACAAAAAAAQZgAAAAEAACAAAABfV80eIU5FtN4dcQAX27CJyZocfDIL/f7NqiHKUPZCxQAAAAAOgAAAAAIAACAAAAA4tOHnqoPptlSe5waqHI34J5i62fKuuk6hZeD9RzzytoAAAABRzZx/kTGQ3B4U6RtAKq7Nz2zHedlHhBZ6ZGqCDn8oY7kVt1DOqYh6Kjqe+SdYtYXlVTydMxOP81ibN+uD9dwm/MMfvw5Dm7HgPLYdQP7TgGVbgGj2vd3ZC/1fexgsCvdqqViuNTopfIsAmPvfZJPM3s7ArpGMQAYOUr7eQy8XQUAAAAB+6kf2MddIjmxbrqfZaQknLXOxQJJF5UJT6nKQ4To8pRKornrxGLjALNYlugYAVTMvvth+zYd0wv5l9oUVPQQo</EncryptedPassword>
     <_PublishTargetUrl>ftps://waws-prod-blu-275.ftp.azurewebsites.windows.net/site/wwwroot</_PublishTargetUrl>
-    <History>False|2023-12-26T22:24:00.5443598Z;</History>
+    <History>False|2024-01-03T17:26:32.6240644Z;False|2023-12-27T00:24:00.5443598+02:00;</History>
     <LastFailureDetails />
   </PropertyGroup>
   <ItemGroup>
@@ -283,19 +283,19 @@ by editing this MSBuild file. In order to learn more about this please visit htt
       <publishTime>03/30/2022 11:07:38</publishTime>
     </File>
     <File Include="web.config">
-      <publishTime>12/27/2023 00:11:02</publishTime>
+      <publishTime>01/03/2024 19:25:57</publishTime>
     </File>
     <File Include="WebApi.deps.json">
-      <publishTime>12/27/2023 00:11:02</publishTime>
+      <publishTime>01/03/2024 19:25:57</publishTime>
     </File>
     <File Include="WebApi.dll">
-      <publishTime>12/27/2023 00:10:56</publishTime>
+      <publishTime>01/03/2024 19:25:49</publishTime>
     </File>
     <File Include="WebApi.exe">
-      <publishTime>12/27/2023 00:10:56</publishTime>
+      <publishTime>01/03/2024 19:25:49</publishTime>
     </File>
     <File Include="WebApi.pdb">
-      <publishTime>12/27/2023 00:10:55</publishTime>
+      <publishTime>01/03/2024 19:25:49</publishTime>
     </File>
     <File Include="WebApi.runtimeconfig.json">
       <publishTime>12/27/2023 00:10:56</publishTime>

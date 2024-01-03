@@ -13,9 +13,10 @@ namespace WebApi.Models
         [Required]
         public string PhoneNumber { get; set; }
         public string Illness { get; set; }
-        // i will make another model for them they can't be 
+        public IFormFile Photo { get; set; }
+
     }
-    
+
     public class BandData
     {
         public double? Temperature { get; set; }
@@ -23,16 +24,37 @@ namespace WebApi.Models
         public double? HeartRate { get; set; }
         public double? Longitude { get; set; }
         public double? Latitude { get; set; }
+
+        public double? SafeZoneLatitude { get; set; }
+        public double? SafeZoneLongitude { get; set; }
+        public double? Radius { get; set; }
+
     }
 
     public class MedicineAddRequest
     {
         public string MedicineName { get; set; }
-        public string Date { get; set; }
-        public string Time { get; set; }
+
+        public string StartDate { get; set; }
+        public string EndDate { get; set; }
+
+        public bool? Saturday { get; set; } = false;
+        public bool? Sunday { get; set; } = false;
+        public bool? Monday { get; set; } = false;
+        public bool? Tuesday { get; set; } = false;
+        public bool? Wednesday { get; set; } = false;
+        public bool? Thursday { get; set; } = false;
+        public bool? Friday { get; set; } = false;
+
+
+
+        public string Time1 { get; set; }
+        public string Time2 { get; set; }
+        public string Time3 { get; set; }
+        public string Time4 { get; set; }
+
         public string Repeat { get; set; }
         public string Reminder { get; set; }
-        public int? NumOfDays { get; set; }
 
     }
 

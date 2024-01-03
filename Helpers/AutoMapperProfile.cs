@@ -12,8 +12,6 @@ namespace WebApi.Helpers
         {
             //---------------------------------------------- User ----------------------------------------------
 
-            //CreateMap<User, GetUserResponse>();
-
             // User -> AuthenticateResponse
             CreateMap<User, AuthenticateResponse>();
 
@@ -32,6 +30,9 @@ namespace WebApi.Helpers
                         return true;
                     }
                 ));
+           // CreateMap<Patient, PatientResponse>()
+           //.ForMember(dest => dest.PhotoUrl, opt => opt.MapFrom(src => $"elderpeopleband.azurewebsites.net/patients/{src.PatientId}/{src.Photo}"));
+
             //---------------------------------------------- Patient ----------------------------------------------
 
             // PatientAddRequest -> Patient

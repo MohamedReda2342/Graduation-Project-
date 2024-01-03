@@ -3,6 +3,7 @@ using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using WebApi.Helpers;
 
@@ -11,9 +12,10 @@ using WebApi.Helpers;
 namespace WebApi.Migrations
 {
     [DbContext(typeof(DataContext))]
-    partial class DataContextModelSnapshot : ModelSnapshot
+    [Migration("20240102215651_profilePhotoAdded")]
+    partial class profilePhotoAdded
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -30,17 +32,14 @@ namespace WebApi.Migrations
 
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("MedicineId"), 1L, 1);
 
-                    b.Property<string>("EndDate")
+                    b.Property<string>("Date")
                         .HasColumnType("nvarchar(max)");
-
-                    b.Property<bool?>("Friday")
-                        .HasColumnType("bit");
 
                     b.Property<string>("MedicineName")
                         .HasColumnType("nvarchar(max)");
 
-                    b.Property<bool?>("Monday")
-                        .HasColumnType("bit");
+                    b.Property<int?>("NumOfDays")
+                        .HasColumnType("int");
 
                     b.Property<int>("PatientId")
                         .HasColumnType("int");
@@ -51,35 +50,8 @@ namespace WebApi.Migrations
                     b.Property<string>("Repeat")
                         .HasColumnType("nvarchar(max)");
 
-                    b.Property<bool?>("Saturday")
-                        .HasColumnType("bit");
-
-                    b.Property<string>("StartDate")
+                    b.Property<string>("Time")
                         .HasColumnType("nvarchar(max)");
-
-                    b.Property<bool?>("Sunday")
-                        .HasColumnType("bit");
-
-                    b.Property<bool?>("Thursday")
-                        .HasColumnType("bit");
-
-                    b.Property<string>("Time1")
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<string>("Time2")
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<string>("Time3")
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<string>("Time4")
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<bool?>("Tuesday")
-                        .HasColumnType("bit");
-
-                    b.Property<bool?>("Wednesday")
-                        .HasColumnType("bit");
 
                     b.HasKey("MedicineId");
 
@@ -123,8 +95,8 @@ namespace WebApi.Migrations
                     b.Property<string>("PhoneNumber")
                         .HasColumnType("nvarchar(450)");
 
-                    b.Property<string>("Photo")
-                        .HasColumnType("nvarchar(max)");
+                    b.Property<byte[]>("Photo")
+                        .HasColumnType("varbinary(max)");
 
                     b.Property<double?>("Radius")
                         .HasColumnType("float");

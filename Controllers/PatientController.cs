@@ -57,20 +57,22 @@ public class PatientsController : ControllerBase
     }
 
 
+    [HttpDelete("DeletePatient")]
+    public IActionResult DeletePatient([FromForm] int userId, [FromForm] int patientId)
+    {
+        _patientService.DeletePatient(userId, patientId);
+        return Ok(new { message = "Patient deleted successfully" });
+    }
+
+    //------------------------------------------------ ... Band ... ------------------------------------------------
+
+
 
     [HttpPut("UpdateBand")]
     public IActionResult UpdateBand([FromForm] int userId, [FromForm] int patientId, [FromForm] BandData model)
     {
         _patientService.UpdateBand(userId, patientId, model);
         return Ok(new { message = "Band Data updated successfully" });
-    }
-
-
-    [HttpDelete("DeletePatient")]
-    public IActionResult DeletePatient([FromForm] int userId, [FromForm] int patientId)
-    {
-        _patientService.DeletePatient(userId, patientId);
-        return Ok(new { message = "Patient deleted successfully" });
     }
 
 
