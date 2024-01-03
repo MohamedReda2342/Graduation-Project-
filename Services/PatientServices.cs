@@ -75,13 +75,13 @@ namespace WebApi.Services
 
             if (model.Photo != null)
             {
-                var filePath = Path.Combine("Assets", model.Photo.FileName);
+                var filePath = Path.Combine("assets", model.Photo.FileName);
                 using (var fileStream = new FileStream(filePath, FileMode.Create))
                 {
                     model.Photo.CopyTo(fileStream);
                 }
                 // Set the relative path to the database
-                patient.Photo = filePath;
+                patient.Photo = $"https://elderpeopleband.scm.azurewebsites.net/api/vfs/site/wwwroot/{filePath}";
             }
             _context.SaveChanges();
         }
@@ -102,14 +102,13 @@ namespace WebApi.Services
                     }
                 }
                 //Save New Photo and save its name in the database
-                var filePath = Path.Combine("Assets", model.Photo.FileName);
+                var filePath = Path.Combine("assets", model.Photo.FileName);
                 using (var fileStream = new FileStream(filePath, FileMode.Create))
                 {
                     model.Photo.CopyTo(fileStream);
                 }
                 // Set the relative path to the database
-                patient.Photo = filePath;
-
+                patient.Photo = $"https://elderpeopleband.scm.azurewebsites.net/api/vfs/site/wwwroot/{filePath}";
             }
 
             // Update patient properties if provided, otherwise keep the existing values
@@ -122,7 +121,15 @@ namespace WebApi.Services
             _context.SaveChanges();
         } 
 
+        public void DeletePatient(int userId, int patientId)
+        {
+            var user = getUser(userId);
+            var patient = getPatient(user, patientId);
 
+            user.Patients.Remove(patient);
+            _context.SaveChanges();
+
+        }
 
         public void UpdateBand(int userId, int patientId, BandData model)
         {
@@ -140,17 +147,6 @@ namespace WebApi.Services
 
             _context.SaveChanges();
         }
-
-        public void DeletePatient(int userId, int patientId)
-        {
-            var user = getUser(userId);
-            var patient = getPatient(user, patientId);
-
-            user.Patients.Remove(patient);
-            _context.SaveChanges();
-
-        }
-
 
         //------------------------------------------------ ...CRUD operations for Medicine... ------------------------------------------------
 

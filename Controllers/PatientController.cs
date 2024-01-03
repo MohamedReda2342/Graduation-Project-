@@ -38,8 +38,6 @@ public class PatientsController : ControllerBase
         return Ok(patients);
     }
 
-//----------------------------------------
-
 
     [HttpGet("Get-Specific-Patient")]
     public IActionResult GetPatientById([FromQuery] int userId, [FromQuery] int patientId)
@@ -67,17 +65,18 @@ public class PatientsController : ControllerBase
     //------------------------------------------------ ... Band ... ------------------------------------------------
 
 
-
+    #region
     [HttpPut("UpdateBand")]
     public IActionResult UpdateBand([FromForm] int userId, [FromForm] int patientId, [FromForm] BandData model)
     {
         _patientService.UpdateBand(userId, patientId, model);
         return Ok(new { message = "Band Data updated successfully" });
     }
-
+    #endregion
 
     //------------------------------------------------ ...CRUD operations for Medicine... ------------------------------------------------
 
+    #region  Medicine
     [HttpPost("AddMedicine")]
     public IActionResult AddMedicine([FromForm] int userId, [FromForm] int patientId, [FromForm] MedicineAddRequest model)
     {
@@ -115,7 +114,7 @@ public class PatientsController : ControllerBase
         _patientService.DeleteMedicine(userId, patientId, medicineId);
         return Ok(new { Message = "Medicine deleted successfully." });
     }
-
+    #endregion
 
 
 
