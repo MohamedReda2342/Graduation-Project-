@@ -9,4 +9,7 @@ public class AuthenticateRequest
 
     [Required]
     public string Password { get; set; }
+
+    [Required]
+    public string DeviceToken { get; set; }
 }

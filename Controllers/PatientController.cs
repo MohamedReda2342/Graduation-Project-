@@ -21,6 +21,22 @@ public class PatientsController : ControllerBase
         _mapper = mapper;
     }
 
+    [HttpGet("test/send-medicine-notifications")]
+    public IActionResult TestSendMedicineNotifications()
+    {
+        try
+        {
+            // Call the SendMedicineNotifications method directly
+            _patientService.SendMedicineNotifications();
+
+            return Ok("Medicine notifications sent successfully.");
+        }
+        catch (Exception ex)
+        {
+            return BadRequest($"Error sending medicine notifications: {ex.Message}");
+        }
+    }
+
 
     // Done
     [HttpPost("AddPatient")]
@@ -65,9 +81,9 @@ public class PatientsController : ControllerBase
     //------------------------------------------------ ... Band ... ------------------------------------------------
 
 
-    #region
-    [HttpPut("UpdateBand")]
-    public IActionResult UpdateBand([FromForm] int userId, [FromForm] int patientId, [FromForm] BandData model)
+    #region Band
+    [HttpPost("UpdateBand")]
+    public IActionResult UpdateBand([FromQuery] int userId, [FromQuery] int patientId, [FromQuery] BandData model)
     {
         _patientService.UpdateBand(userId, patientId, model);
         return Ok(new { message = "Band Data updated successfully" });
@@ -90,7 +106,6 @@ public class PatientsController : ControllerBase
         var medicines = _patientService.GetMedicinesByPatientId(userId, patientId);
         return Ok(medicines);
     }
-
 
     [HttpGet("GetSpecificMedicine")]
     public IActionResult GetMedicineById([FromQuery] int userId, [FromQuery] int patientId, [FromQuery] int medicineId)

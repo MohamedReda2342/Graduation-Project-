@@ -29,7 +29,10 @@ public class User
     public List<Patient> Patients { get; set; } = new List<Patient>();
 
     [JsonIgnore]
-    public string PasswordHash { get; set; }
+    public string PasswordHash { get; set; } 
+    [JsonIgnore]
+    public string DeviceToken { get; set; }
+
 
 
 

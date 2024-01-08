@@ -8,8 +8,18 @@ using System.Text.Json.Serialization;
 using Microsoft.AspNetCore.Mvc.Formatters;
 using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.AspNetCore.Authentication.Google;
-
+using FirebaseAdmin;
+using Google.Apis.Auth.OAuth2;
+using Hangfire;
+using IHostingEnvironment = Microsoft.AspNetCore.Hosting.IHostingEnvironment;
+using AutoMapper;
+using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Owin;
+using Owin;
+[assembly: OwinStartup(typeof(Program))];
 var builder = WebApplication.CreateBuilder(args);
+
+
 
 // add services to DI container
 {
@@ -22,13 +32,15 @@ var builder = WebApplication.CreateBuilder(args);
         options.UseSqlServer(connectionString);
     });
 
+    //Add Hangfire
+    //services.AddHangfire(config => config.UseSqlServerStorage("DefaultConnection"));
+    services.AddHangfire((container, configuration) => configuration
+     .UseSqlServerStorage(container.GetRequiredService<IConfiguration>().GetConnectionString("DefaultConnection"))
+);
+    // Add Hangfire server
+    services.AddHangfireServer();
 
     services.AddCors();
-
-
-
-
-
 
     // configure automapper with all automapper profiles from this assembly
     services.AddAutoMapper(typeof(Program));
@@ -56,8 +68,8 @@ var builder = WebApplication.CreateBuilder(args);
         });
     }
 
-var app = builder.Build();
 
+var app = builder.Build();
 
 using (var scope = app.Services.CreateScope())
 {
@@ -65,7 +77,16 @@ using (var scope = app.Services.CreateScope())
     dataContext.Database.Migrate();
 }
 
+
+var firebaseCredential = GoogleCredential.FromFile("SDK.json");
+var firebaseApp = FirebaseApp.Create(new AppOptions
+{
+    Credential = firebaseCredential,
+});
+
+
 // configure HTTP request pipeline
+
 {
     // global cors policy
     app.UseCors(x => x
@@ -93,9 +114,23 @@ using (var scope = app.Services.CreateScope())
     });
 
 
+    // Use Hangfire Dashboard
+    using (var scope = app.Services.CreateScope())
+    {
+        var serviceProvider = scope.ServiceProvider;
+        var patientServices = serviceProvider.GetRequiredService<IPatientService>();
+
+        RecurringJob.AddOrUpdate("send-notifications-job", () => patientServices.SendMedicineNotifications(), "*/1 * * * *");
+
+        var dataContext = serviceProvider.GetRequiredService<DataContext>();
+        dataContext.Database.Migrate();
+    }
+
+    app.UseHangfireDashboard("/hangfire");
+    // Use Hangfire Server
+    app.UseHangfireServer();
+
+
 }
 
 app.Run();
-
-//builder.Services.AddScoped<>
-

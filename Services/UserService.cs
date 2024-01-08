@@ -56,9 +56,11 @@ public class UserService : IUserService
             throw new AppException("Email or password is incorrect");
         if (user.IsEmailVerified==false)
             throw new AppException("Email isn't verified");
-
+        user.DeviceToken = model.DeviceToken;
         // authentication successful
         var response = _mapper.Map<AuthenticateResponse>(user);
+        _context.Users.Update(user);
+        _context.SaveChanges();
         response.Token = _jwtUtils.GenerateToken(user);
         return response;
     }
