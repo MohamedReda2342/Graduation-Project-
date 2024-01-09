@@ -14,9 +14,7 @@ using Hangfire;
 using IHostingEnvironment = Microsoft.AspNetCore.Hosting.IHostingEnvironment;
 using AutoMapper;
 using Microsoft.Extensions.DependencyInjection;
-using Microsoft.Owin;
-using Owin;
-[assembly: OwinStartup(typeof(Program))];
+
 var builder = WebApplication.CreateBuilder(args);
 
 
@@ -32,13 +30,19 @@ var builder = WebApplication.CreateBuilder(args);
         options.UseSqlServer(connectionString);
     });
 
-    //Add Hangfire
+    builder.Services.AddHangfire(configuration => configuration
+    .SetDataCompatibilityLevel(CompatibilityLevel.Version_170)
+    .UseSimpleAssemblyNameTypeSerializer()
+    .UseRecommendedSerializerSettings()
+    .UseSqlServerStorage(builder.Configuration.GetConnectionString("DefaultConnection")));
+
     //services.AddHangfire(config => config.UseSqlServerStorage("DefaultConnection"));
     services.AddHangfire((container, configuration) => configuration
-     .UseSqlServerStorage(container.GetRequiredService<IConfiguration>().GetConnectionString("DefaultConnection"))
-);
+     .UseSqlServerStorage(container.GetRequiredService<IConfiguration>().GetConnectionString("DefaultConnection")));
+
+
     // Add Hangfire server
-    services.AddHangfireServer();
+    //services.AddHangfireServer();
 
     services.AddCors();
 
@@ -66,15 +70,26 @@ var builder = WebApplication.CreateBuilder(args);
             options.JsonSerializerOptions.ReferenceHandler = ReferenceHandler.IgnoreCycles;
             options.JsonSerializerOptions.WriteIndented = true;
         });
-    }
+}
 
 
 var app = builder.Build();
 
+
+
 using (var scope = app.Services.CreateScope())
 {
-    var dataContext = scope.ServiceProvider.GetRequiredService<DataContext>();    
+    var dataContext = scope.ServiceProvider.GetRequiredService<DataContext>();
     dataContext.Database.Migrate();
+}
+
+// Use Hangfire Dashboard
+using (var scope = app.Services.CreateScope())
+{
+    var serviceProvider = scope.ServiceProvider;
+    var patientServices = serviceProvider.GetRequiredService<IPatientService>();
+
+    RecurringJob.AddOrUpdate("send-notifications-job", () => patientServices.SendMedicineNotifications(), Cron.MinuteInterval(1));
 }
 
 
@@ -106,7 +121,7 @@ var firebaseApp = FirebaseApp.Create(new AppOptions
 
     app.UseRouting();
 
-    app.UseAuthorization(); 
+    app.UseAuthorization();
 
     app.UseEndpoints(endpoints =>
     {
@@ -114,21 +129,10 @@ var firebaseApp = FirebaseApp.Create(new AppOptions
     });
 
 
-    // Use Hangfire Dashboard
-    using (var scope = app.Services.CreateScope())
-    {
-        var serviceProvider = scope.ServiceProvider;
-        var patientServices = serviceProvider.GetRequiredService<IPatientService>();
-
-        RecurringJob.AddOrUpdate("send-notifications-job", () => patientServices.SendMedicineNotifications(), "*/1 * * * *");
-
-        var dataContext = serviceProvider.GetRequiredService<DataContext>();
-        dataContext.Database.Migrate();
-    }
-
     app.UseHangfireDashboard("/hangfire");
     // Use Hangfire Server
     app.UseHangfireServer();
+
 
 
 }

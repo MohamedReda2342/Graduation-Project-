@@ -289,26 +289,43 @@ namespace WebApi.Services
 
                 foreach (var user in usersWithDeviceToken)
                 {
+                    var deviceToken = user.DeviceToken;
+
                     // Assuming each user has a list of associated patients
                     foreach (var patient in user.Patients)
                     {
-                        // Get medicines for the current patient that need notifications
-                        var medicines = patient.Medicines
-                            .Where(m => DateTime.Parse(m.StartDate) <= DateTime.Now && DateTime.Parse(m.EndDate) >= DateTime.Now)
-                            .ToList();
-
-                        foreach (var medicine in medicines)
+                        // Check if patient has geofence coordinates set
+                        if (patient.SafeZoneLatitude.HasValue && patient.SafeZoneLongitude.HasValue && patient.Radius.HasValue)
                         {
-                            List<DateTime> DoseTimes = GetDoseTimesToNotify(medicine);
-                            if (DoseTimes.Count > 0)
+                            // Check if the patient is outside the geofence
+                            if (!IsInsideSafeZone(patient))
                             {
-                                foreach (var doseTime in DoseTimes)
-                                {
-                                    // Assuming the user's device token is stored in the User entity
-                                    var deviceToken = user.DeviceToken;
+                                SendFcmNotification(deviceToken, "Geofence Alert", $"Patient {patient.Name} is outside the safe zone!");
+                            }
+                            // Check temperature for the current patient
+                            if (patient.Temperature.HasValue && patient.Temperature.Value > 37.0)
+                            {
+                                SendFcmNotification(deviceToken, "Temperature Alert", $"Temperature is above 37.0°C for {patient.Name}!");
+                            }
+                            if (patient.O2.HasValue && patient.O2.Value < 95.0)
+                            {
+                                SendFcmNotification(deviceToken, "Oxygen Alert", $"Oxygen is lower than 95% for {patient.Name}!");
+                            }
 
-                                    // Send FCM notification
-                                    SendFcmNotification(deviceToken, "Medicine Reminder", $"Time to take {medicine.MedicineName}!");
+                            // Get medicines for the current patient that need notifications
+                            var medicines = patient.Medicines
+                                .Where(m => DateTime.Parse(m.StartDate).Date <= DateTime.Now.Date && DateTime.Parse(m.EndDate).Date >= DateTime.Now.Date)
+                                .ToList();
+
+                            foreach (var medicine in medicines)
+                            {
+                                List<DateTime> DoseTimes = GetDoseTimesToNotify(medicine);
+                                if (DoseTimes.Count > 0)
+                                {
+                                    foreach (var doseTime in DoseTimes)
+                                    {
+                                        SendFcmNotification(deviceToken, "Medicine Reminder", $"Time to take ({medicine.MedicineName}) !");
+                                    }
                                 }
                             }
                         }
@@ -317,7 +334,7 @@ namespace WebApi.Services
             }
             catch (Exception ex)
             {
-                Console.WriteLine($"Error sending medicine notifications: {ex.Message}");
+                Console.WriteLine($"Error sending notifications: {ex.Message}");
 
             }
 
@@ -438,41 +455,12 @@ namespace WebApi.Services
 
         }
 
-        #region OLD Add doseTimes Function
-        // Helper function to get reminder minutes based on the selected reminder option
-
-
-        //public void AddDoseTimesForDay(Medicine medicine, List<DateTime> doseTimes) 
-        //{
-        //    // Convert the medicine times to DateTime and add them to the list
-        //    if (!string.IsNullOrEmpty(medicine.Time1))
-        //    {
-        //        doseTimes.Add(DateTime.Parse(ParseDoseTime(medicine.StartDate + " " + medicine.Time1)));
-        //    }
-
-        //    if (!string.IsNullOrEmpty(medicine.Time2))
-        //    {
-        //        doseTimes.Add(DateTime.Parse(ParseDoseTime(medicine.StartDate + " " + medicine.Time2)));
-        //    }
-
-        //    if (!string.IsNullOrEmpty(medicine.Time3))
-        //    {
-        //        doseTimes.Add(DateTime.Parse(ParseDoseTime(medicine.StartDate + " " + medicine.Time3)));
-        //    }
-
-        //    if (!string.IsNullOrEmpty(medicine.Time4))
-        //    {
-        //        doseTimes.Add(DateTime.Parse(ParseDoseTime(medicine.StartDate + " " + medicine.Time4)));
-        //    }
-        //} 
-        #endregion
-
-
 
         #endregion
 
         //------------------------------------------------ ...Helper method... ------------------------------------------------
 
+        #region Get User && Get Patient
         private User getUser(int userId)
         {
             var user = _context.Users
@@ -497,6 +485,9 @@ namespace WebApi.Services
             return patient;
         }
 
+        #endregion
+
+
         public string ParseDoseTime(string input)
         {
             //EX :  "2024-01-07T00:00:00.000 1:36";
@@ -517,6 +508,8 @@ namespace WebApi.Services
             return d;
         }
 
+
+
         TimeSpan ParseDuration(string durationString)
         {
             // Split the duration string into hours and minutes
@@ -532,6 +525,38 @@ namespace WebApi.Services
 
             // Create a TimeSpan object representing the duration
             return new TimeSpan(hours, minutes, 0);
+        }
+
+        private bool IsInsideSafeZone(Patient patient)
+        {
+            // Implement your distance calculation logic, such as Haversine formula
+            double distance = CalculateHaversineDistance(
+                patient.Latitude.Value, patient.Longitude.Value,
+                patient.SafeZoneLatitude.Value, patient.SafeZoneLongitude.Value);
+                
+            // Check if the distance is within the safezone radius
+            return distance <= patient.Radius;
+        }
+        // Haversine formula for calculating distance between two points on the Earth
+        private double CalculateHaversineDistance(double lat1, double lon1, double lat2, double lon2)
+        {
+            const double R = 6371; // Earth radius in kilometers
+
+            var dLat = DegToRad(lat2 - lat1);
+            var dLon = DegToRad(lon2 - lon1);
+
+            var a = Math.Sin(dLat / 2) * Math.Sin(dLat / 2) +
+                    Math.Cos(DegToRad(lat1)) * Math.Cos(DegToRad(lat2)) *
+                    Math.Sin(dLon / 2) * Math.Sin(dLon / 2);
+
+            var c = 2 * Math.Atan2(Math.Sqrt(a), Math.Sqrt(1 - a));
+
+            return R * c; // Distance in kilometers
+        }
+
+        private double DegToRad(double deg)
+        {
+            return deg * (Math.PI / 180);
         }
 
 
