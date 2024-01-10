@@ -294,6 +294,7 @@ namespace WebApi.Services
                     // Assuming each user has a list of associated patients
                     foreach (var patient in user.Patients)
                     {
+                        #region Notifications of band data
                         // Check if patient has geofence coordinates set
                         if (patient.SafeZoneLatitude.HasValue && patient.SafeZoneLongitude.HasValue && patient.Radius.HasValue)
                         {
@@ -302,33 +303,44 @@ namespace WebApi.Services
                             {
                                 SendFcmNotification(deviceToken, "Geofence Alert", $"Patient {patient.Name} is outside the safe zone!");
                             }
-                            // Check temperature for the current patient
-                            if (patient.Temperature.HasValue && patient.Temperature.Value > 37.0)
-                            {
-                                SendFcmNotification(deviceToken, "Temperature Alert", $"Temperature is above 37.0°C for {patient.Name}!");
-                            }
-                            if (patient.O2.HasValue && patient.O2.Value < 95.0)
-                            {
-                                SendFcmNotification(deviceToken, "Oxygen Alert", $"Oxygen is lower than 95% for {patient.Name}!");
-                            }
+                        }
+                        if (patient.Temperature.HasValue && patient.Temperature.Value > 37.0)
+                        {
+                            SendFcmNotification(deviceToken, "Temperature Alert", $"Temperature is above 37.0°C for {patient.Name}!");
+                        }
+                        if (patient.O2.HasValue && patient.O2.Value < 95.0)
+                        {
+                            SendFcmNotification(deviceToken, "Oxygen Alert", $"Oxygen is lower than 95% for {patient.Name}!");
+                        }
+                        if (patient.HeartRate.HasValue && patient.HeartRate.Value > 100.0)
+                        {
+                            SendFcmNotification(deviceToken, "HeartRate Alert", $"HeartRate is higher than 100 pbm for {patient.Name}!");
 
-                            // Get medicines for the current patient that need notifications
-                            var medicines = patient.Medicines
+                        }
+                        if (patient.HeartRate.HasValue && patient.HeartRate.Value < 60.0)
+                        {
+                            SendFcmNotification(deviceToken, "HeartRate Alert", $"HeartRate is lower than 60 pbm for {patient.Name}!");
+
+                        }
+
+                        #endregion
+
+                        var medicines = patient.Medicines
                                 .Where(m => DateTime.Parse(m.StartDate).Date <= DateTime.Now.Date && DateTime.Parse(m.EndDate).Date >= DateTime.Now.Date)
                                 .ToList();
 
-                            foreach (var medicine in medicines)
+                        foreach (var medicine in medicines)
+                        {
+                            List<DateTime> DoseTimes = GetDoseTimesToNotify(medicine);
+                            if (DoseTimes.Count > 0)
                             {
-                                List<DateTime> DoseTimes = GetDoseTimesToNotify(medicine);
-                                if (DoseTimes.Count > 0)
+                                foreach (var doseTime in DoseTimes)
                                 {
-                                    foreach (var doseTime in DoseTimes)
-                                    {
-                                        SendFcmNotification(deviceToken, "Medicine Reminder", $"Time to take ({medicine.MedicineName}) !");
-                                    }
+                                    SendFcmNotification(deviceToken, "Medicine Reminder", $"Time to take ({medicine.MedicineName}) !");
                                 }
                             }
                         }
+
                     }
                 }
             }
@@ -533,7 +545,7 @@ namespace WebApi.Services
             double distance = CalculateHaversineDistance(
                 patient.Latitude.Value, patient.Longitude.Value,
                 patient.SafeZoneLatitude.Value, patient.SafeZoneLongitude.Value);
-                
+
             // Check if the distance is within the safezone radius
             return distance <= patient.Radius;
         }
