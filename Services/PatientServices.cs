@@ -1,10 +1,10 @@
 ﻿using AutoMapper;
 using FirebaseAdmin.Messaging;
 using Google.Apis.Auth.OAuth2;
-using Google.Apis.Drive.v3;
 using Google.Apis.Services;
 using Google.Apis.Util.Store;
 using Hangfire;
+using Hangfire.Server;
 using Microsoft.EntityFrameworkCore;
 using System;
 using System.Collections.Generic;
@@ -12,6 +12,8 @@ using System.Linq;
 using WebApi.Entities;
 using WebApi.Helpers;
 using WebApi.Models;
+using System.Threading;
+
 
 namespace WebApi.Services
 {
@@ -31,13 +33,13 @@ namespace WebApi.Services
         void AddMedicine(int userId, int patientId, MedicineAddRequest model);
         void UpdateMedicine(int userId, int patientId, int medicineId, MedicineUpdateRequest model);
         void DeleteMedicine(int userId, int patientId, int medicineId);
-        void UpdateBand(int userId, int patientId, BandData model);
+        void UpdateBand(BandData model);
 
         // Notifications 
         void SendMedicineNotifications();
         void SendFcmNotification(string deviceToken, string title, string body);
-        List<DateTime> GetDoseTimesToNotify(Medicine medicine);
-        void AddDoseTimesForDay(Medicine medicine, List<DateTime> doseTimes);
+        bool GetDoseTimesToNotify(Medicine medicine, DateTime executionTime);
+        bool AddDoseTimesForDay(Medicine medicine, DateTime executionTime);
     }
 
 
@@ -47,12 +49,20 @@ namespace WebApi.Services
         private readonly DataContext _context;
         private readonly IMapper _mapper;
         private readonly IBackgroundJobClient _backgroundJobClient;
+        private readonly IWebHostEnvironment env;
 
-        public PatientServices(DataContext context, IMapper mapper, IBackgroundJobClient backgroundJobClient)
+        //public PatientServices(DataContext context, IMapper mapper, IBackgroundJobClient backgroundJobClient, IWebHostEnvironment env)
+        //{
+        //    _context = context;
+        //    _mapper = mapper;
+        //    _backgroundJobClient = backgroundJobClient;
+        //    this.env = env;
+        //}
+        public PatientServices(DataContext context, IMapper mapper, IWebHostEnvironment env)
         {
             _context = context;
             _mapper = mapper;
-            _backgroundJobClient = backgroundJobClient;
+            this.env = env;
         }
 
 
@@ -78,6 +88,7 @@ namespace WebApi.Services
         }
         #endregion
 
+        #region Add , Update , Delete Patient
         public void AddPatient(int userId, PatientAddRequest model)
         {
 
@@ -87,24 +98,29 @@ namespace WebApi.Services
                 throw new ApplicationException("Patient with the same details already exists.");
 
             var patient = _mapper.Map<Patient>(model);
-            user.Patients.Add(patient);
-
-
 
             if (model.Photo != null)
             {
-                //upload to azure but does not work
                 //Save New Photo and save its name in the database
-                var filePath = Path.Combine("assets", model.Photo.FileName);
-                using (var fileStream = new FileStream(filePath, FileMode.Create))
-                {
-                    model.Photo.CopyTo(fileStream);
-                }
+                #region oldcode
+                //var filePath = Path.Combine("assets", model.Photo.FileName);
+                //using (var fileStream = new FileStream(filePath, FileMode.Create))
+                //{
+                //    model.Photo.CopyTo(fileStream);
+                //}
                 // Set the relative path to the database
-                patient.Photo = $"https://elderpeopleband.scm.azurewebsites.net/api/vfs/site/wwwroot/{filePath}";
+                //patient.Photo = $"https://elderpeopleband.scm.azurewebsites.net/api/vfs/site/wwwroot/{filePath}";en
+                #endregion
+                var FilePath = "Assets\\" + DateTime.Now.Year.ToString() + DateTime.Now.Month.ToString() + DateTime.Now.Millisecond.ToString() + model.Photo.FileName;
+                var path = env.WebRootPath + "\\" + FilePath;
+                using (FileStream fs = System.IO.File.Create(path))
+                {
+                    model.Photo.CopyTo(fs);
+                }
+                patient.Photo = $"https://elderpeopleband.azurewebsites.net/{FilePath}";
             }
 
-
+            user.Patients.Add(patient);
             _context.SaveChanges();
         }
 
@@ -115,22 +131,24 @@ namespace WebApi.Services
 
             if (model.Photo != null)
             {
-                // Delete old photo from server 
-                if (!string.IsNullOrEmpty(patient.Photo))
-                {
-                    if (File.Exists(patient.Photo))
-                    {
-                        File.Delete(patient.Photo);
-                    }
-                }
+                #region DeleteImage
+                //// Delete old photo from server 
+                //if (!string.IsNullOrEmpty(patient.Photo))
+                //{
+                //    if (File.Exists(patient.Photo))
+                //    {
+                //        File.Delete(patient.Photo);
+                //    }
+                //} 
+                #endregion
                 //Save New Photo and save its name in the database
-                var filePath = Path.Combine("assets", model.Photo.FileName);
-                using (var fileStream = new FileStream(filePath, FileMode.Create))
+                var FilePath = "Assets\\" + DateTime.Now.Year.ToString() + DateTime.Now.Month.ToString() + DateTime.Now.Millisecond.ToString() + model.Photo.FileName;
+                var path = env.WebRootPath + "\\" + FilePath;
+                using (FileStream fs = System.IO.File.Create(path))
                 {
-                    model.Photo.CopyTo(fileStream);
+                    model.Photo.CopyTo(fs);
                 }
-                // Set the relative path to the database
-                patient.Photo = $"https://elderpeopleband.scm.azurewebsites.net/api/vfs/site/wwwroot/{filePath}";
+                patient.Photo = $"https://elderpeopleband.azurewebsites.net/{FilePath}";
             }
 
             // Update patient properties if provided, otherwise keep the existing values
@@ -142,7 +160,6 @@ namespace WebApi.Services
 
             _context.SaveChanges();
         }
-
         public void DeletePatient(int userId, int patientId)
         {
             var user = getUser(userId);
@@ -151,16 +168,15 @@ namespace WebApi.Services
             user.Patients.Remove(patient);
             _context.SaveChanges();
 
-        }
-
-
+        } 
+        #endregion
         //------------------------------------------------ ... Band ... ------------------------------------------------
 
 
-        public void UpdateBand(int userId, int patientId, BandData model)
+        public void UpdateBand(BandData model)
         {
-            var user = getUser(userId);
-            var patient = getPatient(user, patientId);
+            var user = getUser(model.UserId);
+            var patient = getPatient(user, model.PatientId);
             // New properties in the PatientUpdateRequest
             patient.Temperature = model.Temperature ?? patient.Temperature;
             patient.O2 = model.O2 ?? patient.O2;
@@ -272,26 +288,30 @@ namespace WebApi.Services
         }
 
         #endregion
-
-        //------------------------------------------------ ... Notifications... ------------------------------------------------
+        //------------------------------------------------ ... Notifications ... ------------------------------------------------
 
         #region Notifications
+
 
         public void SendMedicineNotifications()
         {
             try
             {
+                // Get the execution time of the job
+                DateTime executionTime = DateTime.Now;
+                executionTime = executionTime.AddHours(2);
+
                 // Get users that have a non-null DeviceToken
                 var usersWithDeviceToken = _context.Users
                     .Where(u => !string.IsNullOrEmpty(u.DeviceToken))
                     .Include(u => u.Patients).ThenInclude(p => p.Medicines) // Make sure Patients are loaded
                     .ToList();
 
-                foreach (var user in usersWithDeviceToken)
+                for (int i = 0; i < usersWithDeviceToken.Count; i++)
                 {
+                    User user = usersWithDeviceToken[i];
                     var deviceToken = user.DeviceToken;
 
-                    // Assuming each user has a list of associated patients
                     foreach (var patient in user.Patients)
                     {
                         #region Notifications of band data
@@ -315,7 +335,6 @@ namespace WebApi.Services
                         if (patient.HeartRate.HasValue && patient.HeartRate.Value > 100.0)
                         {
                             SendFcmNotification(deviceToken, "HeartRate Alert", $"HeartRate is higher than 100 pbm for {patient.Name}!");
-
                         }
                         if (patient.HeartRate.HasValue && patient.HeartRate.Value < 60.0)
                         {
@@ -331,13 +350,9 @@ namespace WebApi.Services
 
                         foreach (var medicine in medicines)
                         {
-                            List<DateTime> DoseTimes = GetDoseTimesToNotify(medicine);
-                            if (DoseTimes.Count > 0)
+                            if (GetDoseTimesToNotify(medicine, executionTime))
                             {
-                                foreach (var doseTime in DoseTimes)
-                                {
-                                    SendFcmNotification(deviceToken, "Medicine Reminder", $"Time to take ({medicine.MedicineName}) !");
-                                }
+                                //SendFcmNotification(deviceToken, "Medicine Reminder", $"Time to take ({medicine.MedicineName}) !");
                             }
                         }
 
@@ -351,7 +366,6 @@ namespace WebApi.Services
             }
 
         }
-
         public void SendFcmNotification(string deviceToken, string title, string body)
         {
             var message = new Message
@@ -361,59 +375,58 @@ namespace WebApi.Services
                 {
                     Title = title,
                     Body = body,
-                },
+
+                }
             };
 
             FirebaseMessaging.DefaultInstance.SendAsync(message);
         }
 
-
-
-        public List<DateTime> GetDoseTimesToNotify(Medicine medicine)
+        public bool GetDoseTimesToNotify(Medicine medicine, DateTime executionTime)
         {
-            var doseTimes = new List<DateTime>();
+            bool doseFound = false;
 
             if (medicine.Saturday.HasValue && medicine.Saturday.Value && DateTime.Now.DayOfWeek == DayOfWeek.Saturday)
             {
-                AddDoseTimesForDay(medicine, doseTimes);
+                doseFound = AddDoseTimesForDay(medicine, executionTime);
             }
 
-            if (medicine.Sunday.HasValue && medicine.Sunday.Value && DateTime.Now.DayOfWeek == DayOfWeek.Sunday)
+            else if (medicine.Sunday.HasValue && medicine.Sunday.Value && DateTime.Now.DayOfWeek == DayOfWeek.Sunday)
             {
-                AddDoseTimesForDay(medicine, doseTimes);
+                doseFound = AddDoseTimesForDay(medicine, executionTime);
             }
 
-            if (medicine.Monday.HasValue && medicine.Monday.Value && DateTime.Now.DayOfWeek == DayOfWeek.Monday)
+            else if (medicine.Monday.HasValue && medicine.Monday.Value && DateTime.Now.DayOfWeek == DayOfWeek.Monday)
             {
-                AddDoseTimesForDay(medicine, doseTimes);
+                doseFound = AddDoseTimesForDay(medicine, executionTime);
             }
 
-            if (medicine.Tuesday.HasValue && medicine.Tuesday.Value && DateTime.Now.DayOfWeek == DayOfWeek.Tuesday)
+            else if (medicine.Tuesday.HasValue && medicine.Tuesday.Value && DateTime.Now.DayOfWeek == DayOfWeek.Tuesday)
             {
-                AddDoseTimesForDay(medicine, doseTimes);
+                doseFound = AddDoseTimesForDay(medicine, executionTime);
             }
 
-            if (medicine.Wednesday.HasValue && medicine.Wednesday.Value && DateTime.Now.DayOfWeek == DayOfWeek.Wednesday)
+            else if (medicine.Wednesday.HasValue && medicine.Wednesday.Value && DateTime.Now.DayOfWeek == DayOfWeek.Wednesday)
             {
-                AddDoseTimesForDay(medicine, doseTimes);
+                doseFound = AddDoseTimesForDay(medicine, executionTime);
             }
 
-            if (medicine.Thursday.HasValue && medicine.Thursday.Value && DateTime.Now.DayOfWeek == DayOfWeek.Thursday)
+            else if (medicine.Thursday.HasValue && medicine.Thursday.Value && DateTime.Now.DayOfWeek == DayOfWeek.Thursday)
             {
-                AddDoseTimesForDay(medicine, doseTimes);
+                doseFound = AddDoseTimesForDay(medicine, executionTime);
             }
 
-            if (medicine.Friday.HasValue && medicine.Friday.Value && DateTime.Now.DayOfWeek == DayOfWeek.Friday)
+            else if (medicine.Friday.HasValue && medicine.Friday.Value && DateTime.Now.DayOfWeek == DayOfWeek.Friday)
             {
-                AddDoseTimesForDay(medicine, doseTimes);
+                doseFound = AddDoseTimesForDay(medicine, executionTime);
             }
 
-            return doseTimes;
+            return doseFound;
         }
 
 
         // Parse the string into a DateTime object
-        public void AddDoseTimesForDay(Medicine medicine, List<DateTime> doseTimes)
+        public bool AddDoseTimesForDay(Medicine medicine, DateTime executionTime)
         {
             int reminder;
             switch (medicine.Reminder)
@@ -442,28 +455,20 @@ namespace WebApi.Services
             }
 
             List<string> Times = new List<string>() { medicine.Time1, medicine.Time2, medicine.Time3, medicine.Time4 };
-
-            // Helper function to parse the dose time with reminder
-            DateTime ParseDoseTimeWithReminder(string time)
-            {
-                string fullDateTime = medicine.StartDate + " " + time;
-                var doseTime = DateTime.Parse(ParseDoseTime(fullDateTime));
-                return doseTime.AddMinutes(-reminder);
-            }
-
-
             foreach (var time in Times)
             {
                 if (!string.IsNullOrEmpty(time))
                 {
-                    DateTime parsedDoseTime = ParseDoseTimeWithReminder(time);
+                    DateTime parsedDoseTime = DateTime.Parse(time);
+                    parsedDoseTime = parsedDoseTime.AddHours(-reminder);
                     // Check if the parsed dose time represents the current time without seconds
-                    if (parsedDoseTime.Hour == DateTime.Now.Hour && parsedDoseTime.Minute == DateTime.Now.Minute)
+                    if (parsedDoseTime.Hour == executionTime.Hour && parsedDoseTime.Minute == executionTime.Minute)
                     {
-                        doseTimes.Add(parsedDoseTime);
+                        return true;
                     }
                 }
             }
+            return false;
 
         }
 
@@ -498,46 +503,6 @@ namespace WebApi.Services
         }
 
         #endregion
-
-
-        public string ParseDoseTime(string input)
-        {
-            //EX :  "2024-01-07T00:00:00.000 1:36";
-            // Split the input string into date/time and duration parts
-            string[] parts = input.Split(' ');
-
-            // Parse the date/time part
-            DateTime dateTime = DateTime.ParseExact(parts[0], "yyyy-MM-ddTHH:mm:ss.fff", null);
-
-            // Parse the duration part
-            if (parts.Length > 1)
-            {
-                string durationString = parts[1];
-                TimeSpan duration = ParseDuration(durationString);
-                dateTime = dateTime.Add(duration);
-            }
-            string d = dateTime.ToString("yyyy-MM-ddTHH:mm:ss.fff");
-            return d;
-        }
-
-
-
-        TimeSpan ParseDuration(string durationString)
-        {
-            // Split the duration string into hours and minutes
-            string[] timeParts = durationString.Split(':');
-
-            if (timeParts.Length != 2)
-            {
-                throw new FormatException("Invalid duration format");
-            }
-
-            int hours = int.Parse(timeParts[0]);
-            int minutes = int.Parse(timeParts[1]);
-
-            // Create a TimeSpan object representing the duration
-            return new TimeSpan(hours, minutes, 0);
-        }
 
         private bool IsInsideSafeZone(Patient patient)
         {
@@ -575,4 +540,5 @@ namespace WebApi.Services
         //-------------------------------------------------------------------------------------
 
     }
+
 }

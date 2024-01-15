@@ -19,6 +19,8 @@ namespace WebApi.Models
 
     public class BandData
     {
+        public int UserId { get; set; }
+        public int PatientId { get; set; }
         public double? Temperature { get; set; }
         public double? O2 { get; set; }
         public double? HeartRate { get; set; }

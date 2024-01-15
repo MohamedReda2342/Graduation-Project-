@@ -30,19 +30,22 @@ var builder = WebApplication.CreateBuilder(args);
         options.UseSqlServer(connectionString);
     });
 
-    builder.Services.AddHangfire(configuration => configuration
-    .SetDataCompatibilityLevel(CompatibilityLevel.Version_170)
-    .UseSimpleAssemblyNameTypeSerializer()
-    .UseRecommendedSerializerSettings()
-    .UseSqlServerStorage(builder.Configuration.GetConnectionString("DefaultConnection")));
+    //--------------------------------------------------...Hangfire...-----------------------------------------------
 
-    //services.AddHangfire(config => config.UseSqlServerStorage("DefaultConnection"));
-    services.AddHangfire((container, configuration) => configuration
-     .UseSqlServerStorage(container.GetRequiredService<IConfiguration>().GetConnectionString("DefaultConnection")));
+    //builder.Services.AddHangfire(configuration => configuration
+    //.SetDataCompatibilityLevel(CompatibilityLevel.Version_170)
+    //.UseSimpleAssemblyNameTypeSerializer()
+    //.UseRecommendedSerializerSettings()
+    //.UseSqlServerStorage(builder.Configuration.GetConnectionString("DefaultConnection")));
+
+    ////services.AddHangfire(config => config.UseSqlServerStorage("DefaultConnection"));
+    //services.AddHangfire((container, configuration) => configuration
+    // .UseSqlServerStorage(container.GetRequiredService<IConfiguration>().GetConnectionString("DefaultConnection")));
 
 
-    // Add Hangfire server
-    //services.AddHangfireServer();
+
+// Add Hangfire server
+//services.AddHangfireServer();
 
     services.AddCors();
 
@@ -61,6 +64,10 @@ var builder = WebApplication.CreateBuilder(args);
 
     services.Configure<EmailSettings>(builder.Configuration.GetSection("EmailSettings"));
     services.Configure<AppSettings>(builder.Configuration.GetSection("AppSettings"));
+
+
+    services.AddScoped<FcmNotificationService>();  // Register as scoped
+    services.AddHostedService<FcmNotificationService>();
 
 
     // this code i got from this :
@@ -83,14 +90,13 @@ using (var scope = app.Services.CreateScope())
     dataContext.Database.Migrate();
 }
 
-// Use Hangfire Dashboard
-using (var scope = app.Services.CreateScope())
-{
-    var serviceProvider = scope.ServiceProvider;
-    var patientServices = serviceProvider.GetRequiredService<IPatientService>();
-
-    RecurringJob.AddOrUpdate("send-notifications-job", () => patientServices.SendMedicineNotifications(), Cron.MinuteInterval(1));
-}
+//// Use Hangfire Dashboard
+//using (var scope = app.Services.CreateScope())
+//{
+//    var serviceProvider = scope.ServiceProvider;
+//    var patientServices = serviceProvider.GetRequiredService<IPatientService>();
+//    RecurringJob.AddOrUpdate("send-notifications-job", () => patientServices.SendMedicineNotifications(), Cron.MinuteInterval(1));
+//}
 
 
 var firebaseCredential = GoogleCredential.FromFile("SDK.json");
@@ -129,9 +135,9 @@ var firebaseApp = FirebaseApp.Create(new AppOptions
     });
 
 
-    app.UseHangfireDashboard("/hangfire");
-    // Use Hangfire Server
-    app.UseHangfireServer();
+    //app.UseHangfireDashboard("/hangfire");
+    //// Use Hangfire Server Signal r fi
+    //app.UseHangfireServer();
 
 
 

@@ -1,4 +1,5 @@
 ﻿using AutoMapper;
+using Hangfire;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Options;
 using WebApi.Authorization;
@@ -15,18 +16,19 @@ public class PatientsController : ControllerBase
     private IPatientService _patientService;
     private IMapper _mapper;
 
-    public PatientsController(IPatientService patientService,IMapper mapper)
+    public PatientsController(IPatientService patientService,IMapper mapper)    
     {
         _patientService = patientService;
         _mapper = mapper;
     }
+
 
     [HttpGet("test/send-medicine-notifications")]
     public IActionResult TestSendMedicineNotifications()
     {
         try
         {
-            // Call the SendMedicineNotifications method directly
+            //Call the SendMedicineNotifications method directly
             _patientService.SendMedicineNotifications();
 
             return Ok("Medicine notifications sent successfully.");
@@ -37,16 +39,14 @@ public class PatientsController : ControllerBase
         }
     }
 
-
-    // Done
     [HttpPost("AddPatient")]
+    [AllowAnonymous]
     public IActionResult AddPatient([FromForm] int userId,[FromForm] PatientAddRequest model)
     {
         _patientService.AddPatient(userId, model);
         return Ok(new { message = "Patient added successfully" });
     }
-        
-    // Done
+
     [HttpGet("get-all-patients-of-user")]
     public IActionResult GetPatientsByUserId([FromQuery] int userId)
     {
@@ -83,11 +83,23 @@ public class PatientsController : ControllerBase
 
     #region Band
     [HttpPost("UpdateBand")]
-    public IActionResult UpdateBand([FromQuery] int userId, [FromQuery] int patientId, [FromQuery] BandData model)
+    public IActionResult UpdateBand([FromBody] BandData model)
     {
-        _patientService.UpdateBand(userId, patientId, model);
+        _patientService.UpdateBand(model);
         return Ok(new { message = "Band Data updated successfully" });
     }
+    #endregion
+
+
+    #region Band test
+    //[HttpPost("esp")]
+    //public IActionResult esptest([FromBody] PatientResponse x)
+    //{
+    //    return Ok(new { message = $"The String is : {x.Name}" });
+    //}
+
+
+
     #endregion
 
     //------------------------------------------------ ...CRUD operations for Medicine... ------------------------------------------------
@@ -120,8 +132,6 @@ public class PatientsController : ControllerBase
         _patientService.UpdateMedicine(userId, patientId, medicineId, model);
         return Ok(new { Message = "Medicine updated successfully." });
     }
-
-
 
     [HttpDelete("DeleteMedicine")]
     public IActionResult DeleteMedicine([FromForm] int userId, [FromForm] int patientId, [FromForm] int medicineId)
