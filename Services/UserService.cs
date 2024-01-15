@@ -45,6 +45,28 @@ public class UserService : IUserService
     }
 
 
+    public void Register(RegisterRequest model)
+    {
+        // validate
+        if (_context.Users.Any(x => x.Email == model.Email))
+            throw new AppException("Email '" + model.Email + "' is already taken");
+
+        // map model to new user object
+        var user = _mapper.Map<User>(model);
+
+        // hash password
+        user.PasswordHash = BCrypt.HashPassword(model.Password);
+
+        user.VerificationToken = Guid.NewGuid().ToString();
+        user.VerificationTokenExpiry = DateTime.UtcNow.AddHours(1000); // Set token expiry time
+
+        // save user
+        _context.Users.Add(user);
+        _context.SaveChanges();
+
+        // Send verification email
+        SendVerificationEmail(user.Email, user.VerificationToken, _appSettings);
+    }
 
 
     public AuthenticateResponse Authenticate(AuthenticateRequest model)
@@ -80,28 +102,6 @@ public class UserService : IUserService
         return UserResponses;
     }
 
-    public void Register(RegisterRequest model)
-    {
-        // validate
-        if (_context.Users.Any(x => x.Email == model.Email))
-            throw new AppException("Email '" + model.Email + "' is already taken");
-
-        // map model to new user object
-        var user = _mapper.Map<User>(model);
-
-        // hash password
-        user.PasswordHash = BCrypt.HashPassword(model.Password);
-
-        user.VerificationToken = Guid.NewGuid().ToString();
-        user.VerificationTokenExpiry = DateTime.UtcNow.AddHours(1000); // Set token expiry time
-
-        // save user
-        _context.Users.Add(user);
-        _context.SaveChanges();
-
-        // Send verification email
-        SendVerificationEmail(user.Email, user.VerificationToken, _appSettings);
-    }
     
 
     public void Update(int id, UpdateRequest model)

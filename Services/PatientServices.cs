@@ -185,7 +185,7 @@ namespace WebApi.Services
             patient.Latitude = model.Latitude ?? patient.Latitude;
             patient.SafeZoneLatitude = model.SafeZoneLatitude ?? patient.SafeZoneLatitude;
             patient.SafeZoneLongitude = model.SafeZoneLongitude ?? patient.SafeZoneLongitude;
-            patient.Radius = model.Radius ?? patient.Radius;
+            patient.Radius = (model.Radius/=1000.0) ?? patient.Radius;
 
             _context.SaveChanges();
         }
@@ -218,6 +218,16 @@ namespace WebApi.Services
             if (patient != null)
             {
                 var medicine = _mapper.Map<Medicine>(model);
+                if (medicine.Repeat == "Daily")
+                {
+                    medicine.Saturday = true;
+                    medicine.Sunday = true;
+                    medicine.Monday = true;
+                    medicine.Tuesday = true;
+                    medicine.Wednesday = true;
+                    medicine.Thursday = true;
+                    medicine.Friday = true;
+                }
                 patient.Medicines.Add(medicine);
             }
             else
@@ -262,7 +272,16 @@ namespace WebApi.Services
 
             medicine.Repeat = model.Repeat ?? medicine.Repeat;
             medicine.Reminder = model.Reminder ?? medicine.Reminder;
-
+            if (medicine.Repeat == "Daily")
+            {
+                medicine.Saturday = true;
+                medicine.Sunday = true;
+                medicine.Monday = true;
+                medicine.Tuesday = true;
+                medicine.Wednesday = true;
+                medicine.Thursday = true;
+                medicine.Friday = true;
+            }
             //// Use AutoMapper to map the properties from the DTO to the entity
             //_mapper.Map(model, patient);
             _context.Patients.Update(patient);
@@ -315,6 +334,8 @@ namespace WebApi.Services
                     foreach (var patient in user.Patients)
                     {
                         #region Notifications of band data
+
+
                         // Check if patient has geofence coordinates set
                         if (patient.SafeZoneLatitude.HasValue && patient.SafeZoneLongitude.HasValue && patient.Radius.HasValue)
                         {
@@ -324,14 +345,17 @@ namespace WebApi.Services
                                 SendFcmNotification(deviceToken, "Geofence Alert", $"Patient {patient.Name} is outside the safe zone!");
                             }
                         }
+                        // Temperature : 
                         if (patient.Temperature.HasValue && patient.Temperature.Value > 37.0)
                         {
                             SendFcmNotification(deviceToken, "Temperature Alert", $"Temperature is above 37.0°C for {patient.Name}!");
                         }
+                        // O2 : 
                         if (patient.O2.HasValue && patient.O2.Value < 95.0)
                         {
                             SendFcmNotification(deviceToken, "Oxygen Alert", $"Oxygen is lower than 95% for {patient.Name}!");
                         }
+                        // Hear Rate : 
                         if (patient.HeartRate.HasValue && patient.HeartRate.Value > 100.0)
                         {
                             SendFcmNotification(deviceToken, "HeartRate Alert", $"HeartRate is higher than 100 pbm for {patient.Name}!");
@@ -352,7 +376,7 @@ namespace WebApi.Services
                         {
                             if (GetDoseTimesToNotify(medicine, executionTime))
                             {
-                                //SendFcmNotification(deviceToken, "Medicine Reminder", $"Time to take ({medicine.MedicineName}) !");
+                                SendFcmNotification(deviceToken, "Medicine Reminder", $"Time to take ({medicine.MedicineName}) !");
                             }
                         }
 
@@ -431,9 +455,6 @@ namespace WebApi.Services
             int reminder;
             switch (medicine.Reminder)
             {
-                case "None":
-                    reminder = 0;
-                    break;
                 case "On time":
                     reminder = 0;
                     break;
@@ -460,7 +481,7 @@ namespace WebApi.Services
                 if (!string.IsNullOrEmpty(time))
                 {
                     DateTime parsedDoseTime = DateTime.Parse(time);
-                    parsedDoseTime = parsedDoseTime.AddHours(-reminder);
+                    parsedDoseTime = parsedDoseTime.AddMinutes(-reminder);
                     // Check if the parsed dose time represents the current time without seconds
                     if (parsedDoseTime.Hour == executionTime.Hour && parsedDoseTime.Minute == executionTime.Minute)
                     {
@@ -504,6 +525,8 @@ namespace WebApi.Services
 
         #endregion
 
+        #region SafeZone
+
         private bool IsInsideSafeZone(Patient patient)
         {
             // Implement your distance calculation logic, such as Haversine formula
@@ -514,6 +537,7 @@ namespace WebApi.Services
             // Check if the distance is within the safezone radius
             return distance <= patient.Radius;
         }
+
         // Haversine formula for calculating distance between two points on the Earth
         private double CalculateHaversineDistance(double lat1, double lon1, double lat2, double lon2)
         {
@@ -534,8 +558,9 @@ namespace WebApi.Services
         private double DegToRad(double deg)
         {
             return deg * (Math.PI / 180);
-        }
+        } 
 
+        #endregion
 
         //-------------------------------------------------------------------------------------
 

@@ -78,28 +78,18 @@ public class PatientsController : ControllerBase
         return Ok(new { message = "Patient deleted successfully" });
     }
 
-    //------------------------------------------------ ... Band ... ------------------------------------------------
+    //---------------------------------------------------------... Band ... --------------------------------------------------------
 
 
     #region Band
-    [HttpPost("UpdateBand")]
-    public IActionResult UpdateBand([FromBody] BandData model)
+
+    [AllowAnonymous]
+    [HttpGet("UpdateBand")]
+    public IActionResult UpdateBand([FromQuery] BandData model)
     {
         _patientService.UpdateBand(model);
         return Ok(new { message = "Band Data updated successfully" });
     }
-    #endregion
-
-
-    #region Band test
-    //[HttpPost("esp")]
-    //public IActionResult esptest([FromBody] PatientResponse x)
-    //{
-    //    return Ok(new { message = $"The String is : {x.Name}" });
-    //}
-
-
-
     #endregion
 
     //------------------------------------------------ ...CRUD operations for Medicine... ------------------------------------------------
