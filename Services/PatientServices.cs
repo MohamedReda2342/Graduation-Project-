@@ -172,7 +172,6 @@ namespace WebApi.Services
         #endregion
         //------------------------------------------------ ... Band ... ------------------------------------------------
 
-
         public void UpdateBand(BandData model)
         {
             var user = getUser(model.UserId);

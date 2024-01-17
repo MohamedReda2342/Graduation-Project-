@@ -23,8 +23,6 @@ namespace WebApi.Entities
         public double? Radius { get; set; }
         public string  Photo { get; set; }
 
-
-
         public User User { get; set; }
         public List<Medicine> Medicines { get; set; }
 
