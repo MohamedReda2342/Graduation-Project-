@@ -18,6 +18,9 @@ namespace WebApi.Entities
         public double? Longitude { get; set; }
         public double? Latitude { get; set; }
 
+        public bool Emergerncy { get; set; }
+
+        
         public double? SafeZoneLatitude { get; set; }
         public double? SafeZoneLongitude { get; set; }
         public double? Radius { get; set; }

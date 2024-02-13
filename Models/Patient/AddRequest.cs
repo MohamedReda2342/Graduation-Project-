@@ -31,6 +31,8 @@ namespace WebApi.Models
         public double? SafeZoneLongitude { get; set; }
         public double? Radius { get; set; }
 
+        public bool Emergerncy { get; set; }
+
     }
 
     public class MedicineAddRequest

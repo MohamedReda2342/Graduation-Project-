@@ -10,9 +10,9 @@
         public string Gender { get; set; }
         public string PhoneNumber { get; set; }
         public string Illness { get; set; }
-        public double? Temperature { get; set; }
-        public double? O2 { get; set; }
-        public double? HeartRate { get; set; }
+        public int? Temperature { get; set; }
+        public int? O2 { get; set; }
+        public int? HeartRate { get; set; }
         public double? Longitude { get; set; }
         public double? Latitude { get; set; }
 
@@ -21,7 +21,6 @@
         public double? Radius { get; set; }
 
         public string Photo { get; set; }
-
     }
 
 
@@ -40,7 +39,6 @@
         public bool? Wednesday { get; set; }    
         public bool? Thursday { get; set; }     
         public bool? Friday { get; set; }   
-
 
 
         public string Time1 { get; set; }

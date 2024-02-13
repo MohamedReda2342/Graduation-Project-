@@ -99,6 +99,9 @@ namespace WebApi.Migrations
                     b.Property<int?>("Age")
                         .HasColumnType("int");
 
+                    b.Property<bool>("Emergerncy")
+                        .HasColumnType("bit");
+
                     b.Property<string>("Gender")
                         .HasColumnType("nvarchar(max)");
 

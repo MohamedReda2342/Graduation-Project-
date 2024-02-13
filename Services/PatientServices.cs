@@ -34,6 +34,7 @@ namespace WebApi.Services
         void UpdateMedicine(int userId, int patientId, int medicineId, MedicineUpdateRequest model);
         void DeleteMedicine(int userId, int patientId, int medicineId);
         void UpdateBand(BandData model);
+        void UpdateBand(int userId, int patientId, BandData model);
 
         // Notifications 
         void SendMedicineNotifications();
@@ -51,13 +52,16 @@ namespace WebApi.Services
         private readonly IBackgroundJobClient _backgroundJobClient;
         private readonly IWebHostEnvironment env;
 
+        #region Hangfire
         //public PatientServices(DataContext context, IMapper mapper, IBackgroundJobClient backgroundJobClient, IWebHostEnvironment env)
         //{
         //    _context = context;
         //    _mapper = mapper;
         //    _backgroundJobClient = backgroundJobClient;
         //    this.env = env;
-        //}
+        //} 
+        #endregion
+
         public PatientServices(DataContext context, IMapper mapper, IWebHostEnvironment env)
         {
             _context = context;
@@ -70,7 +74,6 @@ namespace WebApi.Services
         public List<PatientResponse> GetPatientsByUserId(int userId)
         {
             var user = getUser(userId);
-
             // Map Patient entities to PatientResponse objects
             var patientResponses = _mapper.Map<List<PatientResponse>>(user.Patients);
 
@@ -81,6 +84,7 @@ namespace WebApi.Services
         {
             var user = getUser(userId);
             var patient = getPatient(user, patientId);
+
             // Map Patient entity to PatientResponse object
             var patientResponse = _mapper.Map<PatientResponse>(patient);
 
@@ -178,13 +182,38 @@ namespace WebApi.Services
             var patient = getPatient(user, model.PatientId);
             // New properties in the PatientUpdateRequest
             patient.Temperature = model.Temperature ?? patient.Temperature;
-            patient.O2 = model.O2 ?? patient.O2;
+            if (model.O2 != 0)
+            {
+                patient.O2 = model.O2 ?? patient.O2;
+            }
             patient.HeartRate = model.HeartRate ?? patient.HeartRate;
             patient.Longitude = model.Longitude ?? patient.Longitude;
             patient.Latitude = model.Latitude ?? patient.Latitude;
             patient.SafeZoneLatitude = model.SafeZoneLatitude ?? patient.SafeZoneLatitude;
             patient.SafeZoneLongitude = model.SafeZoneLongitude ?? patient.SafeZoneLongitude;
-            patient.Radius = (model.Radius/=1000.0) ?? patient.Radius;
+            patient.Radius = model.Radius ?? patient.Radius;
+            patient.Emergerncy = model.Emergerncy;
+
+
+            _context.SaveChanges();
+        }  
+        public void UpdateBand(int userId, int patientId, BandData model)
+        {
+            var user = getUser(model.UserId);
+            var patient = getPatient(user, model.PatientId);
+            // New properties in the PatientUpdateRequest
+            patient.Temperature = model.Temperature ?? patient.Temperature;
+            if (model.O2 != 0)
+            {
+                patient.O2 = model.O2 ?? patient.O2;
+            }
+            patient.HeartRate = model.HeartRate ?? patient.HeartRate;
+            patient.Longitude = model.Longitude ?? patient.Longitude;
+            patient.Latitude = model.Latitude ?? patient.Latitude;
+            patient.SafeZoneLatitude = model.SafeZoneLatitude ?? patient.SafeZoneLatitude;
+            patient.SafeZoneLongitude = model.SafeZoneLongitude ?? patient.SafeZoneLongitude;
+            patient.Radius = model.Radius ?? patient.Radius;
+            patient.Emergerncy = model.Emergerncy;
 
             _context.SaveChanges();
         }
@@ -334,6 +363,13 @@ namespace WebApi.Services
                     {
                         #region Notifications of band data
 
+                        if (patient.Emergerncy == true)
+                        {
+                            SendFcmNotification(deviceToken, "Emergency Alert", $"Patient ({patient.Name}) Needs your help!");
+                            patient.Emergerncy = false;
+                            _context.SaveChanges();
+
+                        }
 
                         // Check if patient has geofence coordinates set
                         if (patient.SafeZoneLatitude.HasValue && patient.SafeZoneLongitude.HasValue && patient.Radius.HasValue)
@@ -534,7 +570,7 @@ namespace WebApi.Services
                 patient.SafeZoneLatitude.Value, patient.SafeZoneLongitude.Value);
 
             // Check if the distance is within the safezone radius
-            return distance <= patient.Radius;
+            return distance <= (patient.Radius /= 1000);
         }
 
         // Haversine formula for calculating distance between two points on the Earth

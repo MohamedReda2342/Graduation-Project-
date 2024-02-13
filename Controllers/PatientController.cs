@@ -83,11 +83,29 @@ public class PatientsController : ControllerBase
 
     #region Band
 
+    // for other hardware
     [AllowAnonymous]
-    [HttpGet("UpdateBand")]
-    public IActionResult UpdateBand([FromQuery] BandData model)
+    [HttpGet("Band")]
+    public IActionResult Band([FromQuery] BandData model)
     {
         _patientService.UpdateBand(model);
+        return Ok(new { message = "Band Data updated successfully" });
+    } 
+    
+    // for button
+    [AllowAnonymous]
+    [HttpGet("BandStatus")]
+    public IActionResult BandStatus([FromQuery] BandData model)
+    {
+        _patientService.UpdateBand(model);
+        return Ok(new { message = "Band status updated successfully" });
+    }
+
+    // for app 
+    [HttpPut("UpdateBand")]
+    public IActionResult UpdateBand([FromForm] int userId, [FromForm] int patientId, [FromForm] BandData model)
+    {
+        _patientService.UpdateBand(userId, patientId , model);
         return Ok(new { message = "Band Data updated successfully" });
     }
     #endregion
